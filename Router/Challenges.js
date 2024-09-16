@@ -12,14 +12,26 @@ router.post("/addChallenge", async (req, res) => {
     ChallengeImage,
     ChallengeLevel,
   } = req.body;
-
+  // console.log(
+  //   userId,
+  //   ChallengeName,
+  //   ChallengeType,
+  //   ChallengeImage,
+  //   ChallengeLevel
+  // );
   // find th ChallengeType
   let ChType;
   switch (ChallengeType) {
     case "HTML":
       ChType = "Web Development";
       break;
-    case "Swift" || "React Native" || "Kotlin":
+    case "Swift":
+      ChType = "App Development";
+      break;
+    case "React Native":
+      ChType = "App Development";
+      break;
+    case "Kotlin":
       ChType = "App Development";
       break;
     default:
@@ -61,7 +73,7 @@ router.post("/uploadChallenge/:id", async (req, res) => {
       findChallenge.status = "completed";
     }
     await user.save();
-    res.send("Uploaded");
+    res.send("completed");
   }
   // console.log(GitRepo, LiveLink, SnapImage);
 });
@@ -117,10 +129,10 @@ router.post("/checkChallengeStatus/:id", async (req, res) => {
     // console.log(findChallenge);
     switch (findChallenge?.status) {
       case "pending":
-        res.send("Pending");
+        res.send("pending");
         break;
       case "completed":
-        res.send("Uploaded");
+        res.send("completed");
       default:
         break;
     }
@@ -137,7 +149,7 @@ router.post("/getParticularChallenge/:id", async (req, res) => {
   let findChallenge;
   switch (ChallengeLevel) {
     case "newbie":
-      findChallenge = findTopic.Challenges.newbieLevel.find(
+      findChallenge = findTopic?.Challenges.newbieLevel.find(
         (ch) => ch.title == ChallengeName
       );
       res.send(findChallenge);

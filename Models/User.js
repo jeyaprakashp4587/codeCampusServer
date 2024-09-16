@@ -15,13 +15,24 @@ const UserSchema = new Schema({
   District: String,
   Nationality: String,
   Bio: String,
+  SocketId: String,
   Images: {
     profile: String,
     coverImg: String,
   },
-  Posts: [],
-  Followers: [],
-  Following: [],
+  Posts: [
+    {
+      PostText: String,
+      Images: [],
+      PostLink: String,
+      Like: Number,
+      Time: String,
+      Comments: [{ CommentText: String }],
+      LikedPersons: [{ PersonId: String }],
+    },
+  ],
+
+  Connections: [{ ConnectionsdId: String }],
   Courses: [{ Course_Name: String, Technologies: [] }],
   Reawards: [],
   Challenges: [
@@ -36,7 +47,19 @@ const UserSchema = new Schema({
       ChallengeType: String,
     },
   ],
-  Activities: [{}],
+  Activities: [{ date: String, activities: [{ activityName: String }] }],
+
+  ConnectionsPost: [{ postId: String }],
+  Notifications: [
+    {
+      NotificationType: String,
+      NotificationText: String,
+      Time: String,
+      NotificationSender: String,
+      NotificationSenderProfile: String,
+      seen: Boolean,
+    },
+  ],
 });
 
 module.exports = DB2.model("user", UserSchema);

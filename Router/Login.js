@@ -65,4 +65,16 @@ router.post("/signUp", async (req, res) => {
   }
 });
 
+// get the user details for update when component refresh
+router.post("/getUser", async (req, res) => {
+  const { userId } = req.body;
+  const user = await User.findById(userId);
+  // console.log(userId);
+  if (user) {
+    // console.log("send");
+    res.send(user);
+  }
+  // console.log("userId", userId);
+});
+
 module.exports = router;
