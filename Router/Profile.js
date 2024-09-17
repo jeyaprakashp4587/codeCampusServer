@@ -38,5 +38,19 @@ router.post("/updateProfileData/:id", async (req, res) => {
     res.send(user);
   }
 });
+//
+router.post("/setProfile/:id", async (req, res) => {
+  const { id } = req.params;
+  const user = await User.findById(id);
+  if (!user.Images.profile) {
+    console.log(user.Images.profile);
+    user.Images.profile =
+      user.Gender.toString() == "male"
+        ? "https://i.ibb.co/hBjSQLy/boy.png"
+        : "https://i.ibb.co/51W8TcQ/woman.png";
+    await user.save();
+    res.send(user);
+  }
+});
 
 module.exports = router;
