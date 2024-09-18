@@ -45,7 +45,7 @@ router.post("/setProfile/:id", async (req, res) => {
   if (!user.Images.profile) {
     console.log(user.Images.profile);
     user.Images.profile =
-      user.Gender.toString() == "male"
+      user.Gender.toLowerCase() == "male"
         ? "https://i.ibb.co/hBjSQLy/boy.png"
         : "https://i.ibb.co/51W8TcQ/woman.png";
     await user.save();
