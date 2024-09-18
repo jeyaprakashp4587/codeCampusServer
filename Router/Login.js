@@ -46,7 +46,7 @@ router.post("/signUp", async (req, res) => {
   } = req.body;
 
   // Convert the email to lowercase
-  const lowerCaseEmail = Email.toLowerCase();
+  const lowerCaseEmail = Email.toLowerCase().trim();
 
   // Check if the email already exists
   const existMail = await User.findOne({ Email: lowerCaseEmail });
