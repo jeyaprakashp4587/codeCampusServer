@@ -14,7 +14,7 @@ router.post("/splash", async (req, res) => {
 router.post("/signIn", async (req, res) => {
   const { Email, Password } = req.body;
   // Convert the email to lowercase
-  const lowerCaseEmail = Email.toLowerCase();
+  const lowerCaseEmail = Email.toLowerCase().trim();
 
   // Find the email user id
   const findEmailUser = await User.findOne({ Email: lowerCaseEmail });
