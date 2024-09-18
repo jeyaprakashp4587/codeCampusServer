@@ -10,10 +10,14 @@ router.post("/splash", async (req, res) => {
   }
 });
 
+// SignIn route
 router.post("/signIn", async (req, res) => {
   const { Email, Password } = req.body;
-  // find the email user id
-  const findEmailUser = await User.findOne({ Email });
+  // Convert the email to lowercase
+  const lowerCaseEmail = Email.toLowerCase();
+
+  // Find the email user id
+  const findEmailUser = await User.findOne({ Email: lowerCaseEmail });
   if (findEmailUser) {
     if (findEmailUser.Password === Password) {
       res.send(findEmailUser);
@@ -21,12 +25,12 @@ router.post("/signIn", async (req, res) => {
       res.send("Password is Incorrect");
     }
   } else {
-    res.send("Email or Passowrd is Incorrect");
+    res.send("Email or Password is Incorrect");
   }
 });
 
+// SignUp route
 router.post("/signUp", async (req, res) => {
-  //
   const {
     First_Name,
     Last_Name,
@@ -40,16 +44,19 @@ router.post("/signUp", async (req, res) => {
     District,
     Nationality,
   } = req.body;
-  //   check if email already exists
-  //
-  const existMail = await User.findOne({ Email: Email });
+
+  // Convert the email to lowercase
+  const lowerCaseEmail = Email.toLowerCase();
+
+  // Check if the email already exists
+  const existMail = await User.findOne({ Email: lowerCaseEmail });
   if (existMail) {
-    res.send("Email has Already Taken");
+    res.send("Email has Already Been Taken");
   } else {
     const user = await User({
       firstName: First_Name,
       LastName: Last_Name,
-      Email: Email,
+      Email: lowerCaseEmail, // Save email in lowercase
       Password: Password,
       Gender: Gender,
       DateOfBirth: Date_Of_Birth,
@@ -59,9 +66,9 @@ router.post("/signUp", async (req, res) => {
       District: District,
       Nationality: Nationality,
     });
-    //  save the user details in signup
+    // Save the user details in signup
     await user.save();
-    res.send("SignUp Sucessfully");
+    res.send("SignUp Successfully");
   }
 });
 
