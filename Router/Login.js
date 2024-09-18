@@ -47,9 +47,9 @@ router.post("/signUp", async (req, res) => {
 
   // Convert the email to lowercase
   const lowerCaseEmail = Email.toLowerCase().trim();
-
+  console.log(Email);
   // Check if the email already exists
-  const existMail = await User.findOne({ Email: lowerCaseEmail });
+  const existMail = await User.findOne({ Email: Email });
   if (existMail) {
     res.send("Email has Already Been Taken");
   } else {
@@ -68,7 +68,7 @@ router.post("/signUp", async (req, res) => {
     });
     // Save the user details in signup
     await user.save();
-    res.send("SignUp Successfully");
+    res.send("SignUp Sucessfully");
   }
 });
 
