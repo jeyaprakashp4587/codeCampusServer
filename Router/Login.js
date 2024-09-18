@@ -47,6 +47,7 @@ router.post("/signUp", async (req, res) => {
 
   // Convert the email to lowercase
   const lowerCaseEmail = Email.toLowerCase().trim();
+  const lowerGender = Gender.toLowerCase().trim();
   console.log(Email);
   // Check if the email already exists
   const existMail = await User.findOne({ Email: Email });
@@ -58,7 +59,7 @@ router.post("/signUp", async (req, res) => {
       LastName: Last_Name,
       Email: lowerCaseEmail, // Save email in lowercase
       Password: Password,
-      Gender: Gender,
+      Gender: lowerGender,
       DateOfBirth: Date_Of_Birth,
       Degreename: Degree_name,
       InstitudeName: Institute_Name,
