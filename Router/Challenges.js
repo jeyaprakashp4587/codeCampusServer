@@ -92,7 +92,7 @@ router.post("/getChallenges", async (req, res) => {
 router.post("/getUserChallege/:id", async (req, res) => {
   const { id } = req.params;
   const { option } = req.body;
-  // console.log(option);
+  console.log(option);
   // find user
   const user = await User.findById(id);
   if (user) {
