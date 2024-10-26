@@ -12,11 +12,11 @@ const Post = require("./Router/Post");
 const Search = require("./Router/Search");
 const Following = require("./Router/Following");
 const Suggestions = require("./Router/Suggestions");
-const Socket = require("socket.io");
-const Actitivity = require("./Router/Activity");
+const Activity = require("./Router/Activity");
 const Notification = require("./Router/Notification");
 const Placement = require("./Router/Placement");
 const socket = require("./Socket/Socket");
+const Assignments = require("./Router/Assignments");
 
 const app = express();
 const server = http.createServer(app);
@@ -40,13 +40,13 @@ app.use("/Courses", Course);
 app.use("/Challenges", Challenges);
 app.use("/Profile", Profile);
 app.use("/Post", Post);
-app.use("/Activity", Actitivity);
+app.use("/Activity", Activity);
 app.use("/Search", Search);
 app.use("/following", Following);
 app.use("/Suggestions", Suggestions);
 app.use("/Placements", Placement);
 app.use("/Notifications", Notification);
-
+app.use("/Assignment", Assignments);
 // Port listening
 const port = process.env.PORT || 8080;
 server.listen(port, () => {

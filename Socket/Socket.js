@@ -8,61 +8,116 @@ const initializeSocket = (server) => {
       methods: ["GET", "POST"],
     },
   });
-  // socket initialize
+
+  // Socket initialization
   io.on("connection", async (socket) => {
-    // user Id
     const userId = socket.handshake.query.userId;
-    // update the socket id
+
+    // Update the socket id in the database
     if (userId) {
-      // console.log("one user Connected", socket.id);
-      await User.findByIdAndUpdate(
-        userId,
-        { SocketId: socket.id },
-        { new: true }
-      );
-      const user = await User.findById(userId);
-      if (!user.SocketId) {
-        user.SocketId = socket.id;
-        await user.save();
+      try {
+        const updatedUser = await User.findByIdAndUpdate(
+          userId,
+          { SocketId: socket.id }, // Update socket ID
+          { new: true }
+        );
+        console.log(
+          `User connected: ${updatedUser.firstName} with socket ID: ${socket.id}`
+        );
+      } catch (error) {
+        console.error("Error updating SocketId:", error.message);
       }
     }
-    socket.on("test", (data) => {
-      // console.log(data);
-    });
 
-    //  send notification when sender make a friend request
-
-    socket.on("sendNotificationToUser", async (data) => {
+    // Listen for notification events
+    socket.on("sendNotificationForConnection", async (data) => {
       const { ReceiverId, SenderId, Time } = data;
-      // find sender
-      // console.log(Time);
-      const Receiver = await User.findById(ReceiverId);
-      const sender = await User.findById(SenderId);
-      if (Receiver) {
-        Receiver.Notifications.push({
-          NotificationType: "connection",
-          NotificationText: `You are Connected With ${
-            sender.firstName + sender.LastName
-          }`,
-          NotificationSender: SenderId,
-          NotificationSenderProfile: sender.Images.profile,
-          Time: Time,
-        });
-        await Receiver.save();
-        io.to(Receiver.SocketId).emit("Noti-test", {
-          text: `You are Connected With ${
-            sender.firstName + "_" + sender.LastName
-          }`,
-        });
+
+      try {
+        const [Receiver, Sender] = await Promise.all([
+          User.findById(ReceiverId),
+          User.findById(SenderId),
+        ]);
+
+        if (Receiver) {
+          Receiver.Notifications.push({
+            NotificationType: "connection",
+            NotificationText: `You are Connected With ${Sender.firstName} ${Sender.LastName}`,
+            NotificationSender: SenderId,
+            Time,
+          });
+
+          await Receiver.save();
+
+          if (Receiver.SocketId) {
+            io.to(Receiver.SocketId).emit("Noti-test", {
+              text: `You are Connected With ${Sender.firstName}_${Sender.LastName}`,
+            });
+          }
+        }
+      } catch (error) {
+        console.error("Error sending notification:", error.message);
       }
     });
 
-    //socket disconnect
-    socket.on("disconnect", () => {
-      // console.log("one user leave", socket.id);
+    // Handle post notifications for user's connections
+    socket.on("PostNotiToConnections", async (data) => {
+      const { Time, postId } = data;
+
+      try {
+        const user = await User.findById(userId);
+        const usersConnections = user.Connections.map(
+          (conn) => conn.ConnectionsdId
+        );
+
+        // Send notifications to all connections in parallel
+        await Promise.all(
+          usersConnections.map(async (id) => {
+            const connectionUser = await User.findById(id);
+            if (connectionUser) {
+              connectionUser.Notifications.push({
+                NotificationType: "post",
+                NotificationText: `${user.firstName} ${user.LastName} uploaded a post`,
+                NotificationSender: user._id,
+                Time,
+                postId,
+              });
+
+              await connectionUser.save();
+
+              if (connectionUser.SocketId) {
+                io.to(connectionUser.SocketId).emit("Noti-test", {
+                  text: `${user.firstName} ${user.LastName} uploaded a post`,
+                });
+              }
+            }
+          })
+        );
+      } catch (error) {
+        console.error("Error notifying connections:", error.message);
+      }
+    });
+
+    // Check notification
+    socket.on("checkNotification", (data) => {
+      if (data.socketId) {
+        io.to(data.socketId).emit("updateNoti", { text: "success" });
+      }
+    });
+
+    // Handle socket disconnection
+    socket.on("disconnect", async () => {
+      console.log(`User disconnected: ${socket.id}`);
+      try {
+        await User.findOneAndUpdate(
+          { SocketId: socket.id },
+          { SocketId: null } // Remove the SocketId on disconnect
+        );
+      } catch (error) {
+        console.error("Error handling disconnect:", error.message);
+      }
     });
   });
-  // return io;
 };
 
 module.exports = initializeSocket;

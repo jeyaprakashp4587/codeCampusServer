@@ -23,15 +23,30 @@ const UserSchema = new Schema({
   Posts: [
     {
       PostText: String,
-      Images: [],
       PostLink: String,
+      Images: Array,
+      Time: Date,
       Like: Number,
-      Time: String,
-      Comments: [{ CommentText: String }],
-      LikedPersons: [{ PersonId: String }],
+      SenderId: mongoose.Types.ObjectId,
+      Comments: [
+        {
+          commentedBy: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "User",
+            required: true,
+          },
+          commentText: { type: String, required: true },
+          commentedAt: { type: Date, default: Date.now },
+        },
+      ],
+      LikedUsers: [
+        {
+          LikedUser: mongoose.Types.ObjectId,
+          LikedTime: { type: Date, default: Date.now },
+        },
+      ],
     },
   ],
-
   Connections: [{ ConnectionsdId: String }],
   Courses: [{ Course_Name: String, Technologies: [] }],
   Reawards: [],
@@ -43,21 +58,29 @@ const UserSchema = new Schema({
       status: String,
       RepoLink: String,
       LiveLink: String,
-      SnapImage: String,
+      SnapImage: Array,
       ChallengeType: String,
     },
   ],
   Activities: [{ date: String, activities: [{ activityName: String }] }],
-
   ConnectionsPost: [{ postId: String }],
   Notifications: [
     {
       NotificationType: String,
       NotificationText: String,
       Time: String,
-      NotificationSender: String,
-      NotificationSenderProfile: String,
+      NotificationSender: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // Reference to the User model
+      senderFirstName: String, // Store the first name when notification is created
+      senderLastName: String, // Store the last name when notification is created
+      senderProfileImage: String, // Store the profile image when notification is created
       seen: Boolean,
+      postId: { type: mongoose.Schema.Types.ObjectId, ref: "Post" },
+    },
+  ],
+  Assignments: [
+    {
+      AssignmentType: String,
+      AssignmentLevel: [{ LevelType: String, point: Number }],
     },
   ],
 });
