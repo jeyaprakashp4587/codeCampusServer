@@ -19,7 +19,6 @@ router.post("/updateProfileImages", async (req, res) => {
     } else {
       return res.status(400).json({ error: "Invalid ImageType" });
     }
-
     await user.save();
     res.status(200).json(user);
   } catch (error) {
