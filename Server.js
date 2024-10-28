@@ -17,6 +17,7 @@ const Notification = require("./Router/Notification");
 const Placement = require("./Router/Placement");
 const socket = require("./Socket/Socket");
 const Assignments = require("./Router/Assignments");
+const Wallet = require("./Router/Wallet");
 
 const app = express();
 const server = http.createServer(app);
@@ -47,6 +48,7 @@ app.use("/Suggestions", Suggestions);
 app.use("/Placements", Placement);
 app.use("/Notifications", Notification);
 app.use("/Assignment", Assignments);
+app.use("/Wallet",Wallet)
 // Port listening
 const port = process.env.PORT || 8080;
 server.listen(port, () => {

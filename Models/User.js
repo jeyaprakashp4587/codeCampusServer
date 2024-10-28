@@ -83,6 +83,20 @@ const UserSchema = new Schema({
       AssignmentLevel: [{ LevelType: String, point: Number }],
     },
   ],
+  Wallet: {
+    TotalWallet: Number,
+    GpayAccount: {
+      GpayAccountName: String,
+      GpayUpiId: String
+    },
+    Withdraw: [
+      {
+        Time: String,
+        WithdrawAmount: Number,
+        status: String
+      }
+    ]
+  }
 });
 
 module.exports = DB2.model("user", UserSchema);
