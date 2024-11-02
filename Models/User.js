@@ -92,7 +92,7 @@ const UserSchema = new Schema({
       GpayAccountName: String,
       GpayUpiId: String
     },
-    Withdraw: [
+    WithdrawHistory: [
       {
         Time: String,
         WithdrawAmount: Number,

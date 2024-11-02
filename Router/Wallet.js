@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const User = require("../Models/User");
 const nodemailer = require("nodemailer")
+const moment = require("moment")
 
 router.post("/ChangeGpayDetails/:id", async (req, res) => { 
     const { id } = req.params;
@@ -59,11 +60,20 @@ router.post('/withdrawal', async (req, res) => {
       <p>Requested Amount: ₹${amount}</p>
     `,
   };
-
   // Send email and respond to client
   try {
     await transporter.sendMail(mailOptions);
-    res.status(200).json({ message: 'Withdrawal request processed successfully' });
+    const user = await User.findById(userId);
+    if (user) {
+      user.Wallet.TotalWallet -= amount;
+      user.Wallet.WithdrawHistory.push({
+        Time: moment().format("YYYY-MM-DD"),
+        WithdrawAmount: amount,
+        status: "pending"
+      })
+      await user.save();
+      res.status(200).send(user);
+    }
   } catch (error) {
     console.error('Error sending email:', error); // Log the error for debugging
     res.status(500).json({ error: 'Failed to process withdrawal request. Please try again.' });
