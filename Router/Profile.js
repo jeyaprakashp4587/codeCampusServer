@@ -69,7 +69,7 @@ router.post("/setProfile/:id", async (req, res) => {
       await user.save();
     }
 
-    res.status(200).json(user);
+    res.status(200).send(user);
   } catch (error) {
     console.error("Error setting default profile image:", error);
     res.status(500).json({ error: "Internal server error" });

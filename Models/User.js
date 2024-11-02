@@ -84,7 +84,10 @@ const UserSchema = new Schema({
     },
   ],
   Wallet: {
-    TotalWallet: Number,
+    TotalWallet: {
+      type: Number,
+      default: 0,
+    },
     GpayAccount: {
       GpayAccountName: String,
       GpayUpiId: String
