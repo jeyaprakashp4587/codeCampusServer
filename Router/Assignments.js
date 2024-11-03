@@ -6,7 +6,7 @@ const { DB1 } = require("../Database/CCDB");
 //
 router.get("/getAssignments/:assignmentTye", async (req, res) => {
   const { assignmentTye } = req.params;
-  console.log(assignmentTye);
+  // console.log(assignmentTye);
   const collection = DB1.collection("Quiz");
   const findAssignment = await collection.findOne({
     AssignmentType: assignmentTye,
@@ -20,7 +20,7 @@ router.post("/saveAssignment/:id", async (req, res) => {
   try {
     const { id } = req.params;
     const { AssignmentType, point, level } = req.body;
-    console.log(AssignmentType, point, level);
+    // console.log(AssignmentType, point, level);
     // Find user by ID
     const user = await User.findById(id);
     if (!user) {
