@@ -92,6 +92,7 @@ router.post("/removeConnection/:id", async (req, res) => {
 // get user networks connecton
 router.get("/getNetworks/:id", async (req, res) => {
   const { id } = req.params;
+  // console.log(id);
   try {
     const selectedUser = await User.findById(id);
     const users = [];
@@ -114,7 +115,7 @@ router.get("/getNetworks/:id", async (req, res) => {
         })
       );
     }
-    res.status(200).json({data: users });
+    res.status(200).send(users);
   } catch (error) {
     console.error('Error fetching user networks:', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
