@@ -89,5 +89,35 @@ router.post("/removeConnection/:id", async (req, res) => {
     res.status(500).send("Error removing connection");
   }
 });
-
+// get user networks connecton
+router.get("/getNetworks/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const selectedUser = await User.findById(id);
+    const users = [];
+    if (selectedUser) {
+      await Promise.all(
+        selectedUser.Connections.map(async (connection) => {
+          try {
+            const user = await User.findById(connection.ConnectionsdId);
+            if (user) {
+              users.push({
+                firstName: user.firstName,
+                lastName: user.LastName,
+                profileImg: user.Images.profile,
+                id: user._id
+              });
+            }
+          } catch (error) {
+            console.error(`Error fetching user with ID ${connection.ConnectionsdId}:`, error);
+          }
+        })
+      );
+    }
+    res.status(200).json({data: users });
+  } catch (error) {
+    console.error('Error fetching user networks:', error);
+    res.status(500).json({ success: false, message: 'Internal server error' });
+  }
+});
 module.exports = router;
