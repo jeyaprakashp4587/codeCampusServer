@@ -56,7 +56,8 @@ router.post("/addChallenge", async (req, res) => {
 router.post("/uploadChallenge/:id", async (req, res) => {
   const { GitRepo, LiveLink, SnapImage, ChallengeName } = req.body;
   const { id } = req.params;
-
+ console.log(GitRepo, LiveLink, SnapImage, ChallengeName );
+ 
   const user = await User.findById(id);
   if (user) {
     const findChallenge = user.Challenges.find(
