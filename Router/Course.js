@@ -33,7 +33,6 @@ router.post("/addCourse", async (req, res) => {
 // Add Technology to Course
 router.post("/addTech", async (req, res) => {
   const { TechName, CourseName, UserId } = req.body;
-
   try {
     const user = await User.findById(UserId);
     if (user) {

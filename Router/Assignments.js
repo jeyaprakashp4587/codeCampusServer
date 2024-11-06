@@ -48,6 +48,31 @@ router.post("/saveAssignment/:id", async (req, res) => {
         ],
       });
     }
+  // Increment user course points
+const course = user.Courses.find((course) =>
+  course.Technologies.some(
+    (tech) => tech.TechName.toLowerCase() === AssignmentType.toLowerCase()
+  )
+);
+// increase user course points
+if (course) {
+  const tech = course.Technologies.find(
+    (tech) => tech.TechName.toLowerCase() === AssignmentType.toLowerCase()
+  );
+  if (tech) {
+    switch (level) {
+      case "easy":
+        tech.Points += 2;
+        break;
+      case "medium":
+        tech.Points += 3;
+        break;
+      case "hard":
+        tech.Points += 5;
+        break;
+    }
+  }
+}
     // Save the updated user data
     await user.save();
     // Send success response
