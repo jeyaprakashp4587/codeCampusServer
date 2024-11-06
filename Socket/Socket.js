@@ -63,13 +63,11 @@ const initializeSocket = (server) => {
     // Handle post notifications for user's connections
     socket.on("PostNotiToConnections", async (data) => {
       const { Time, postId } = data;
-
       try {
         const user = await User.findById(userId);
         const usersConnections = user.Connections.map(
           (conn) => conn.ConnectionsdId
         );
-
         // Send notifications to all connections in parallel
         await Promise.all(
           usersConnections.map(async (id) => {
@@ -82,9 +80,7 @@ const initializeSocket = (server) => {
                 Time,
                 postId,
               });
-
               await connectionUser.save();
-
               if (connectionUser.SocketId) {
                 io.to(connectionUser.SocketId).emit("Noti-test", {
                   text: `${user.firstName} ${user.LastName} uploaded a post`,

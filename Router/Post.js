@@ -178,7 +178,7 @@ router.post("/likePost/:postId", async (req, res) => {
 
     // Find the user who owns the post
     const postOwner = await User.findOne({ "Posts._id": postId });
-
+  
     if (!postOwner) {
       return res.status(404).json({ message: "Post not found" });
     }
