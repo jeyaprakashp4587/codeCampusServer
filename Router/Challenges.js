@@ -56,7 +56,7 @@ router.post("/addChallenge", async (req, res) => {
 router.post("/uploadChallenge/:id", async (req, res) => {
   const { GitRepo, LiveLink, SnapImage, ChallengeName } = req.body;
   const { id } = req.params;
- console.log(GitRepo, LiveLink, SnapImage, ChallengeName );
+//  console.log(GitRepo, LiveLink, SnapImage, ChallengeName );
  
   const user = await User.findById(id);
   if (user) {
@@ -143,7 +143,7 @@ router.post("/checkChallengeStatus/:id", async (req, res) => {
 router.post("/getParticularChallenge/:id", async (req, res) => {
   const { id } = req.params;
   const { ChallengeName, ChallengeType, ChallengeLevel } = req.body;
-  console.log(id, ChallengeName, ChallengeType, ChallengeLevel);
+  // console.log(id, ChallengeName, ChallengeType, ChallengeLevel);
   const collection = DB1.collection("Challenges");
   const findTopic = await collection.findOne({ ChallengeTopic: ChallengeType });
 
