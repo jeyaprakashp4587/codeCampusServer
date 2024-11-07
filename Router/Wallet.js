@@ -25,8 +25,8 @@ router.post("/AddWallet/:id", async (req, res) => {
     const { id } = req.params;
     const { Price } = req.body;
   const user = await User.findById(id);
-  // console.log(id);
-  
+  // console.log(Price);
+  // 
     if (user) {
         user.Wallet.TotalWallet += Price;
         await user.save()

@@ -60,9 +60,11 @@ router.post("/setProfile/:id", async (req, res) => {
       return res.status(404).json({ error: "User not found" });
     }
 
-    if (!user.Images.profile) {
+    if (!user.Images.profile || !user.Images) {
+      console.log("work");
+      
       user.Images.profile =
-        user.Gender.toLowerCase() === "male"
+        user.Gender.toLowerCase() == "male"
           ? "https://i.ibb.co/hBjSQLy/boy.png"
           : "https://i.ibb.co/51W8TcQ/woman.png";
 
