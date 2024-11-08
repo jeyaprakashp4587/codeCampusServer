@@ -25,7 +25,7 @@ const UserSchema = new Schema({
       PostText: String,
       PostLink: String,
       Images: Array,
-      Time: Date,
+      Time: String,
       Like: Number,
       SenderId: mongoose.Types.ObjectId,
       Comments: [
@@ -36,19 +36,22 @@ const UserSchema = new Schema({
             required: true,
           },
           commentText: { type: String, required: true },
-          commentedAt: { type: Date, default: Date.now },
+          commentedAt: String,
         },
       ],
       LikedUsers: [
         {
           LikedUser: mongoose.Types.ObjectId,
-          LikedTime: { type: Date, default: Date.now },
+          LikedTime: String,
         },
       ],
     },
   ],
   Connections: [{ ConnectionsdId: String }],
-  Courses: [{ Course_Name: String, Technologies: [] }],
+  Courses: [{
+    Course_Name: String, Technologies: [
+      { TechName: String, Points: { default: 0 ,type: Number} }
+  ] }],
   Reawards: [],
   Challenges: [
     {

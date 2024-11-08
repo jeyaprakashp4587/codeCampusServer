@@ -81,8 +81,8 @@ const initializeSocket = (server) => {
                 postId,
               });
               await connectionUser.save();
-              if (connectionUser.SocketId) {
-                io.to(connectionUser.SocketId).emit("Noti-test", {
+              if (connectionUser?.SocketId) {
+                io.to(connectionUser?.SocketId).emit("Noti-test", {
                   text: `${user.firstName} ${user.LastName} uploaded a post`,
                 });
               }
