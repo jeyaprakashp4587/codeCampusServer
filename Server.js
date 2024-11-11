@@ -16,6 +16,7 @@ const Activity = require("./Router/Activity");
 const Notification = require("./Router/Notification");
 const Placement = require("./Router/Placement");
 const socket = require("./Socket/Socket");
+const Interview = require("./Router/Interview")
 const Assignments = require("./Router/Assignments");
 const Wallet = require("./Router/Wallet");
 
@@ -48,7 +49,8 @@ app.use("/Suggestions", Suggestions);
 app.use("/Placements", Placement);
 app.use("/Notifications", Notification);
 app.use("/Assignment", Assignments);
-app.use("/Wallet",Wallet)
+app.use("/Wallet", Wallet)
+app.use("/InterView",Interview)
 // Port listening
 const port = process.env.PORT || 8080;
 server.listen(port, () => {

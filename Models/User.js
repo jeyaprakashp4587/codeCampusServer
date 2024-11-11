@@ -102,7 +102,13 @@ const UserSchema = new Schema({
         status: String
       }
     ]
-  }
+  },
+  InterView: [
+    {
+      companyName: String,
+      currentWeek:{default:1,type: Number}
+    }
+  ]
 });
 
 module.exports = DB2.model("user", UserSchema);
