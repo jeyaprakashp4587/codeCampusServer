@@ -70,16 +70,14 @@ router.post("/addInterView", async (req, res) => {
 // submit task and add week
 router.post('/submitTask', async (req, res) => {
   const { userId, companyName } = req.body;
-  console.log(userId, companyName);
-  
   try {
     const user = await User.findById(userId);
     const findCompany = user.InterView.find((comp) => comp.companyName === companyName);
     if (findCompany) {
       console.log(findCompany);
       findCompany.currentWeek += 1;
-    //   await user.save();
-      res.json(parseInt(findCompany.currentWeek)); // Use res.json instead of res.send
+      await user.save();
+        res.json({week:findCompany.currentWeek, user: user }); // Use res.json instead of res.send
     } else {
       res.sendStatus(404); // Send 404 if the company is not found
     }
