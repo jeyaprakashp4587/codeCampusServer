@@ -100,7 +100,60 @@ const initializeSocket = (server) => {
         io.to(data.socketId).emit("updateNoti", { text: "success" });
       }
     });
-
+    // send notificatio to receier for like post
+    socket.on("LikeNotiToUploader", async (data) => {
+      const { Time, postId,senderId } = data;
+      try {
+        const user = await User.findById(userId);
+        const postSender = await User.findById(senderId);
+        if (user && postSender) {
+          postSender.Notifications.push({
+            NotificationSender: user?._id,
+            NotificationType: "post",
+            NotificationText: `${user?.firstName} ${user?.LastName} Liked your post`,
+            Time,
+            postId
+          })
+          await postSender.save();
+          if (postSender?.SocketId) {
+            io.to(postSender?.SocketId).emit("Noti-test", {
+                  text: `${user.firstName} ${user.LastName} Liked your post`,
+                })
+          }
+        }
+        // 
+      } catch (err) {
+        console.log(err);
+        
+      }
+    })
+      // send notificatio to receier for comment post
+    socket.on("CommentNotiToUploader", async (data) => {
+      const { Time, postId,senderId } = data;
+      try {
+        const user = await User.findById(userId);
+        const postSender = await User.findById(senderId);
+        if (user && postSender) {
+          postSender.Notifications.push({
+            NotificationSender: user?._id,
+            NotificationType: "post",
+            NotificationText: `${user?.firstName} ${user?.LastName} Commented to your post`,
+            Time,
+            postId
+          })
+          await postSender.save();
+          if (postSender?.SocketId) {
+            io.to(postSender?.SocketId).emit("Noti-test", {
+                  text: `${user.firstName} ${user.LastName} Commented to your post`,
+                })
+          }
+        }
+        // 
+      } catch (err) {
+        console.log(err);
+        
+      }
+    })
     // Handle socket disconnection
     socket.on("disconnect", async () => {
       console.log(`User disconnected: ${socket.id}`);

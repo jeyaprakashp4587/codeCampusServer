@@ -177,6 +177,7 @@ router.get("/getConnectionPosts/:userId", async (req, res) => {
           "SenderDetails.LastName": 1,
           "SenderDetails.Images.profile": 1,
           "SenderDetails.InstitudeName": 1,
+          "SenderDetails._id":1
         },
       },
     ]);
