@@ -19,6 +19,7 @@ const socket = require("./Socket/Socket");
 const Interview = require("./Router/Interview")
 const Assignments = require("./Router/Assignments");
 const Wallet = require("./Router/Wallet");
+const axios = require("axios")
 
 const app = express();
 const server = http.createServer(app);
@@ -50,9 +51,24 @@ app.use("/Placements", Placement);
 app.use("/Notifications", Notification);
 app.use("/Assignment", Assignments);
 app.use("/Wallet", Wallet)
-app.use("/InterView",Interview)
+app.use("/InterView", Interview)
+// 
+// Self-ping endpoint
+app.get("/ping", (req, res) => {
+  res.status(200).send("Server is alive!");
+});
 // Port listening
 const port = process.env.PORT || 8080;
 server.listen(port, () => {
   console.log(`Server is listening on port ${port}`);
+  
+  // Self-ping every 60 seconds
+  setInterval(async () => {
+    try {
+      await axios.get(`https://codecampusserver-r6gw.onrender.com/ping`);
+      console.log("Self-ping successful");
+    } catch (error) {
+      console.error("Error in self-ping:", error);
+    }
+  }, 300000); // Ping every 60 seconds
 });
