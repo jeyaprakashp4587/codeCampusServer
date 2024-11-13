@@ -2,11 +2,12 @@ const express = require("express");
 const router = express.Router();
 const User = require("../Models/User");
 const { mongoose } = require("mongoose");
+const cron = require("node-cron");
 
-// Upload a post
 router.post("/uploadPost", async (req, res) => {
   const { userId, Images, postText, postLink, Time } = req.body;
   console.log(userId, Images, postText, postLink, Time);
+
   try {
     // Validate input fields
     if (!postText && !Images?.length && !postLink) {
@@ -17,7 +18,7 @@ router.post("/uploadPost", async (req, res) => {
     const user = await User.findById(userId);
     if (!user) return res.status(404).send("User not found");
 
-    // Create a new post object
+    // Create a new post object with a timestamp
     const newPost = {
       PostText: postText,
       PostLink: postLink,
@@ -27,6 +28,7 @@ router.post("/uploadPost", async (req, res) => {
       SenderId: user._id,
       Comments: [],
       LikedUsers: [],
+      CreatedAt: new Date() // Timestamp for when the post is created
     };
 
     // Push the new post to the user's Posts array
@@ -44,13 +46,38 @@ router.post("/uploadPost", async (req, res) => {
         await connectionUser.save();
       }
     });
-    console.log(postId);
+    cron.schedule('* * * * *', async () => { 
+      const now = new Date();
+      const postTime = new Date(newPost.CreatedAt);
+      const timeDifference = (now - postTime) / (1000 * 60 * 60); 
+      // Check if 25 hours have passed since the post was created
+      if (timeDifference >= 25) {
+        try {
+          // Remove the post from all connections
+          await User.updateMany(
+            { "ConnectionsPost.postId": postId },
+            { $pull: { ConnectionsPost: { postId: postId } } }
+          );
+
+          // Optionally remove the post from the original user's post array
+          await User.findByIdAndUpdate(userId, { 
+            $pull: { Posts: { _id: postId } }
+          });
+
+          console.log(`Post ${postId} removed after 25 hours`);
+
+        } catch (err) {
+          console.error("Error removing post after 25 hours:", err);
+        }
+      }
+    });
     res.status(200).send({ text: "Post uploaded successfully", postId });
   } catch (error) {
     console.error("Error uploading post:", error);
     res.status(500).send("An error occurred while uploading the post.");
   }
 });
+
 
 // Delete post
 router.post("/deletePost/:id", async (req, res) => {
