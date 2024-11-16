@@ -38,8 +38,7 @@ router.post("/AddWallet/:id", async (req, res) => {
 })
 router.post('/withdrawal', async (req, res) => {
   const { userId, userName, accountName, upiId, amount } = req.body;
-  console.log(userId, userName, accountName, upiId, amount);
-
+  // console.log(userId, userName, accountName, upiId, amount);
   // Configure your email transporter (example using Gmail SMTP)
   const transporter = nodemailer.createTransport({
     service: 'gmail',
