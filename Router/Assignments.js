@@ -68,7 +68,7 @@ router.post("/saveAssignment/:id", async (req, res) => {
     await user.save();
 
     // Send the updated user data in the response
-    res.send(user);
+    res.send(user).status(200);
   } catch (error) {
     console.error("Server error while saving assignment:", error);
     res.status(500).json({ message: "Server error" });
