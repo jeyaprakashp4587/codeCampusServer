@@ -30,7 +30,7 @@ router.post("/AddWallet/:id", async (req, res) => {
     if (user) {
         user.Wallet.TotalWallet += Price;
         await user.save()
-        res.status(200).send(user);
+        res.status(200).send(user?.Wallet?.TotalWallet);
     }
     else {
         res.send("user not found")
