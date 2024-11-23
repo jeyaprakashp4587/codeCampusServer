@@ -40,12 +40,21 @@ router.post("/uploadPost", async (req, res) => {
 
     // Share the post with user's connections
     user.Connections.map(async (connection) => {
+  // Fetch the connected user's data by their ID
       const connectionUser = await User.findById(connection.ConnectionsdId);
       if (connectionUser) {
+        // Check if the user already has more than or equal to 15 connection posts
+        if (connectionUser.ConnectionsPost.length >= 15) {
+          // Remove the oldest postId (first element in the array)
+          connectionUser.ConnectionsPost.shift();
+        }
+        // Add the new postId to the connection posts
         connectionUser.ConnectionsPost.push({ postId });
+        // Save the updated connection user data
         await connectionUser.save();
       }
     });
+
     cron.schedule('* * * * *', async () => { 
       const now = new Date();
       const postTime = new Date(newPost.CreatedAt);
