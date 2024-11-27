@@ -106,6 +106,28 @@ router.post("/increaseClaimstreak", async (req, res) => {
     return res.status(500).json({ error: "Internal server error." });
   }
 });
+// save the total spend time in user data
+router.post("/saveSpendTime", async (req, res) => {
+  const { userId, Time } = req.body;
+  try {
+    // Find the user by ID
+    const user = await User.findById(userId);
+    if (user) {
+      // Increment the TotalStudyTime field by the provided Time
+      user.TotalStudyTime += Time;
+      // Save the updated user data
+      await user.save();
+      // Respond with success message
+      res.status(200).json({data: user?.TotalStudyTime});
+    } else {
+      // If user not found, send an error response
+      res.status(404).json({ message: 'User not found' });
+    }
+  } catch (error) {
+    // Catch any errors and send a failure response
+    res.status(500).json({ message: 'Error updating study time', error: error.message });
+  }
+});
 
 module.exports = router;
 

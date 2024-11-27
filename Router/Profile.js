@@ -20,7 +20,7 @@ router.post("/updateProfileImages", async (req, res) => {
       return res.status(400).json({ error: "Invalid ImageType" });
     }
     await user.save();
-    res.status(200).json(user);
+    res.status(200).json({data: user.Images});
   } catch (error) {
     console.error("Error updating profile image:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -43,7 +43,7 @@ router.post("/updateProfileData/:id", async (req, res) => {
     if (Bio) user.Bio = Bio;
 
     await user.save();
-    res.status(200).json(user);
+    res.status(200).json({firstName: user.firstName,LastName,Bio});
   } catch (error) {
     console.error("Error updating profile data:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -61,7 +61,6 @@ router.post("/setProfile/:id", async (req, res) => {
     }
 
     if (!user.Images.profile || !user.Images) {
-      console.log("work");
       
       user.Images.profile =
         user.Gender.toLowerCase() == "male"
@@ -71,7 +70,7 @@ router.post("/setProfile/:id", async (req, res) => {
       await user.save();
     }
 
-    res.status(200).send(user);
+    res.status(200).json({Images: user.Images});
   } catch (error) {
     console.error("Error setting default profile image:", error);
     res.status(500).json({ error: "Internal server error" });

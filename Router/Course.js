@@ -21,7 +21,7 @@ router.post("/addCourse", async (req, res) => {
       // Add course if it doesn't exist
       user.Courses.push({ Course_Name: courseName, Technologies: [] });
       await user.save();
-      res.send(user);
+      res.status(200).json({courses: user.Courses})
     } else {
       res.status(404).send("User not found.");
     }
@@ -57,7 +57,7 @@ router.post("/addTech", async (req, res) => {
       // Add the technology
       course.Technologies.push({ TechName: TechName, Points: 0 });
       await user.save();
-      res.status(200).send(user);
+      res.status(200).json({Tech: user.Courses});
     } else {
       res.status(404).send("User not found.");
     }
@@ -85,7 +85,7 @@ router.post("/removeCourse", async (req, res) => {
       // Remove the course
       user.Courses.splice(courseIndex, 1);
       await user.save();
-      res.status(200).send(user);
+      res.status(200).json({course: user.Courses})
     } else {
       res.status(404).send("User not found.");
     }
