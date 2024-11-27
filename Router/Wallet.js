@@ -2,7 +2,8 @@ const express = require("express");
 const router = express.Router();
 const User = require("../Models/User");
 const nodemailer = require("nodemailer")
-const moment = require("moment")
+const moment = require("moment");
+
 
 router.post("/ChangeGpayDetails/:id", async (req, res) => { 
     const { id } = req.params;
@@ -80,5 +81,40 @@ router.post('/withdrawal', async (req, res) => {
     res.status(500).json({ error: 'Failed to process withdrawal request. Please try again.' });
   }
 });
+// increase user Daily Claim streak
+router.post("/increaseClaimstreak", async (req, res) => {
+  try {
+    const { userId } = req.body;
+    // Validate if userId is provided
+    if (!userId) {
+      return res.status(400).json({ error: "User ID is required." });
+    }
+    // Find the user by ID
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: "User not found." });
+    }
+    // Increment the DailyClaimStreak
+    user.DailyCalimStreak = (user.DailyCalimStreak || 0) + 1;
+    // Save the updated user
+    await user.save();
+    // Respond with the updated daily streak
+    return res.status(200).json({ dailyStreak: user.DailyCalimStreak });
+  } catch (error) {
+    // Handle any errors
+    console.error("Error updating DailyCalimStreak:", error);
+    return res.status(500).json({ error: "Internal server error." });
+  }
+});
 
 module.exports = router;
+
+
+
+
+
+
+
+
+
+

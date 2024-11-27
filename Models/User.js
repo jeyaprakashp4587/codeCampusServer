@@ -108,7 +108,9 @@ const UserSchema = new Schema({
       companyName: String,
       currentWeek:{default:1,type: Number}
     }
-  ]
+  ],
+  DailyCalimStreak:{default:0,type: Number},	
+  TotalStudyTime:{default:0,type: Number}
 });
 
 module.exports = DB2.model("user", UserSchema);
