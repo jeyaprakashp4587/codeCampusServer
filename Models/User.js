@@ -110,7 +110,8 @@ const UserSchema = new Schema({
     }
   ],
   DailyCalimStreak:{default:0,type: Number},	
-  TotalStudyTime:{default:0,type: Number}
+  TotalStudyTime: { default: 0, type: Number },
+  OneSignalId: String,
 });
 
 module.exports = DB2.model("user", UserSchema);

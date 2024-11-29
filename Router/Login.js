@@ -121,5 +121,6 @@ router.post("/getUser", async (req, res) => {
   }
   // console.log("userId", userId);
 });
+// set onesignal id
 
 module.exports = router;
