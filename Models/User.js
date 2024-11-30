@@ -111,7 +111,13 @@ const UserSchema = new Schema({
   ],
   DailyCalimStreak:{default:0,type: Number},	
   TotalStudyTime: { default: 0, type: Number },
-  OneSignalId: String,
+   FcmId: String,
+  // coding war
+  War: {
+    warStatus: {type: Boolean},
+    opponent: {profile: String,Name: String},
+    judge: { profile: String, Name: String },    
+  }
 });
 
 module.exports = DB2.model("user", UserSchema);

@@ -20,12 +20,15 @@ const Interview = require("./Router/Interview")
 const Assignments = require("./Router/Assignments");
 const Wallet = require("./Router/Wallet");
 const axios = require("axios")
+const initializeFirebaseAdmin = require('./firebase/firebaseAdmin');
 
 const app = express();
 const server = http.createServer(app);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors({ origin: "*" }));
+// initalize firebase admin
+const admin = initializeFirebaseAdmin();
 // socket
 socket(server);
 // Connect databases

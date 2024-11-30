@@ -76,5 +76,22 @@ router.post("/setProfile/:id", async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 });
+// set FcTockn
+router.post("/saveFcmToken", async (req, res) => { 
+  const { userId, FcmToken } = req.body;
+  // console.log(FcmToken);
+  try {
+    const user = await User.findById(userId);
+    if (user) {
+      user.FcmId = FcmToken;
+      user.save();
+    }
+     res.status(200).send({ message: 'FCM token saved successfully' });
+  }
+  catch (err) {
+    console.log(err);
+    
+  }
+});
 
 module.exports = router;

@@ -1,6 +1,6 @@
 const Socket = require("socket.io");
 const User = require("../Models/User");
-
+const initializeFirebaseAdmin = require('../firebase/firebaseAdmin');
 const initializeSocket = (server) => {
   const io = Socket(server, {
     cors: {
@@ -8,8 +8,9 @@ const initializeSocket = (server) => {
       methods: ["GET", "POST"],
     },
   });
-
-  // Socket initialization
+  //  init firebase
+  const admin = initializeFirebaseAdmin();
+    // Socket initialization
   io.on("connection", async (socket) => {
     const userId = socket.handshake.query.userId;
 
@@ -154,6 +155,22 @@ const initializeSocket = (server) => {
         
       }
     })
+    // implemetn socket for text firebase notification
+    socket.on("Fb", async (data) => {
+      const { token, msg } = data;
+      console.log(token,msg);
+      await admin
+        .messaging()
+        .send({
+          token: token,
+          notification: {
+            title: "Test Notification",
+            body: "Hello World",
+          },
+        })
+        .then((response) => console.log("Notification sent:", response))
+        .catch((error) => console.error("Error sending notification:", error));
+    });
     // Handle socket disconnection
     socket.on("disconnect", async () => {
       console.log(`User disconnected: ${socket.id}`);
