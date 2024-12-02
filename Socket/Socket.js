@@ -117,7 +117,7 @@ const initializeSocket = (server) => {
           })
           await postSender.save();
           if (postSender?.SocketId) {
-            io.to(postSender?.SocketId).emit("Noti-test", {
+            io.to(postSender.SocketId).emit("Noti-test", {
                   text: `${user.firstName} ${user.LastName} Liked your post`,
                 })
           }
@@ -140,11 +140,12 @@ const initializeSocket = (server) => {
             NotificationType: "post",
             NotificationText: `${user?.firstName} ${user?.LastName} Commented to your post`,
             Time,
-            postId
+            postId,
+            
           })
           await postSender.save();
           if (postSender?.SocketId) {
-            io.to(postSender?.SocketId).emit("Noti-test", {
+            io.to(postSender.SocketId).emit("Noti-test", {
                   text: `${user.firstName} ${user.LastName} Commented to your post`,
                 })
           }
@@ -156,20 +157,19 @@ const initializeSocket = (server) => {
       }
     })
     // implemetn socket for text firebase notification
-    socket.on("Fb", async (data) => {
+    socket.on("bb", async (data) => {
       const { token, msg } = data;
       console.log(token,msg);
-      await admin
-        .messaging()
-        .send({
-          token: token,
-          notification: {
-            title: "Test Notification",
-            body: "Hello World",
-          },
-        })
-        .then((response) => console.log("Notification sent:", response))
-        .catch((error) => console.error("Error sending notification:", error));
+      // await admin
+      //   .messaging()
+      //   .send({
+          
+      //     notification: {
+      //       title: "Test Notification",
+      //       body: "Hello World",
+      //     },
+      //   }).then(console.log("send sucessfull")
+      //   )
     });
     // Handle socket disconnection
     socket.on("disconnect", async () => {
