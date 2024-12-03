@@ -160,16 +160,17 @@ const initializeSocket = (server) => {
     socket.on("bb", async (data) => {
       const { token, msg } = data;
       console.log(token,msg);
-      // await admin
-      //   .messaging()
-      //   .send({
+      await admin
+        .messaging()
+        .send({
           
-      //     notification: {
-      //       title: "Test Notification",
-      //       body: "Hello World",
-      //     },
-      //   }).then(console.log("send sucessfull")
-      //   )
+          notification: {
+            title: "Test Notification",
+            body: "Hello World",
+          },
+        }).then(console.log("send sucessfull")
+      ).catch((err) => console.log(err)
+      )
     });
     // Handle socket disconnection
     socket.on("disconnect", async () => {
