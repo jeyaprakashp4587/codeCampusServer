@@ -5,11 +5,28 @@ const nodemailer = require("nodemailer");
 
 router.post("/splash", async (req, res) => {
   const { Email } = req.body;
-  const user = await User.findOne({ Email: Email });
-  if (user) {
-    res.send(user);
+
+  if (!Email) {
+    return res.status(400).json({ error: "Email is required" });
+  }
+
+  // console.log("Received email:", Email);
+
+  try {
+    const user = await User.findOne({ Email: Email });
+
+    if (user) {
+      return res.status(200).json(user); // Respond with the user
+    } else {
+      console.log("User not found");
+      return res.status(404).json({ error: "User not found" });
+    }
+  } catch (error) {
+    console.error("Error querying the database:", error.message);
+    return res.status(500).json({ error: "Internal server error" });
   }
 });
+
 
 // SignIn route
 router.post("/signIn", async (req, res) => {
@@ -121,6 +138,79 @@ router.post("/getUser", async (req, res) => {
   }
   // console.log("userId", userId);
 });
-// set onesignal id
-
+// send resetPass otp
+router.post("/sendReserPassOtp", async (req, res) => {
+  const { email, otp } = req.body;
+  const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+      user: 'jeyaprakashp431@gmail.com',
+      pass: 'qiri pwwh hcyn nrek', // Use App Password here if using Gmail
+    },
+  });
+  // Compose email
+  const mailOptions = {
+    from: 'jeyaprakashp431@gmail.com',
+    to: email,
+    subject: 'Password Reset Request',
+    html: `
+      
+  <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
+        <h2 style="text-align: center; color: #3a6ea5;">Password Reset Request</h2>
+        <p style="font-size: 16px; color: #333;">
+          Dear User,
+        </p>
+        <p style="font-size: 16px; color: #333;">
+          We received a request to reset your password. Please use the OTP below to proceed with resetting your password. This OTP is valid for the next 10 minutes.
+        </p>
+        <div style="text-align: center;display:flex;">
+          <p>
+          OTP:</p>
+          <p style="font-Weight: bold;padding-left:5px;">${otp}</p>
+        </div>
+        <p style="font-size: 16px; color: #333;">
+          If you did not request a password reset, please ignore this email or contact our support team.
+        </p>
+        <p style="font-size: 16px; color: #333;">Thank you,</p>
+        <p style="font-size: 16px; color: #333; font-weight: bold;">The Support Team</p>
+        <hr style="border: 0; border-top: 1px solid #ddd; margin: 20px 0;">
+        <p style="font-size: 12px; color: #999; text-align: center;">
+          If you have any questions, please do not hesitate to contact us at support@example.com.
+        </p>
+      </div>
+    `,
+  };
+  try {
+    await transporter.sendMail(mailOptions);
+    res.status(200).send({ message: "OTP sent successfully" });
+  } catch (error) {
+    console.error("Error sending email:", error.message);
+    res.status(500).send({ error: "Failed to send OTP" });
+  }
+});
+//reset New password
+router.post('/resetNewPassword', async (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password) {
+    return res.status(400).json({ message: 'Email and password are required.' });
+  }
+  try {
+    // Find the user by email
+    const user = await User.findOne({Email: email})
+    // console.log(user);
+    
+    if (!user) {
+      console.log("no user found");
+      return res.status(404).json({ message: 'User not found.' });
+    }
+    else {
+      user.Password = password;
+      await user.save();
+      return res.status(200).json({msg:'ok'});
+    }
+  } catch (error) {
+    console.log(err);
+    
+  }
+})
 module.exports = router;
