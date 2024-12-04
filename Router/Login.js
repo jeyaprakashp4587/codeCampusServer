@@ -16,7 +16,7 @@ router.post("/splash", async (req, res) => {
     const user = await User.findOne({ Email: Email });
 
     if (user) {
-      return res.status(200).json(user); // Respond with the user
+      return res.status(200).json({user: user}); // Respond with the user
     } else {
       console.log("User not found");
       return res.status(404).json({ error: "User not found" });

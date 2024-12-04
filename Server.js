@@ -19,6 +19,7 @@ const socket = require("./Socket/Socket");
 const Interview = require("./Router/Interview")
 const Assignments = require("./Router/Assignments");
 const Wallet = require("./Router/Wallet");
+const Jobs = require("./Router/Jobs");
 const axios = require("axios")
 const initializeFirebaseAdmin = require('./firebase/firebaseAdmin');
 
@@ -53,8 +54,9 @@ app.use("/Suggestions", Suggestions);
 app.use("/Placements", Placement);
 app.use("/Notifications", Notification);
 app.use("/Assignment", Assignments);
-app.use("/Wallet", Wallet)
-app.use("/InterView", Interview)
+app.use("/Wallet", Wallet);
+app.use("/InterView", Interview);
+app.use("/Jobs",Jobs)
 // 
 
 // Self-ping endpoint
