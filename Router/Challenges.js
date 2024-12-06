@@ -121,10 +121,10 @@ router.post("/getUserChallenge/:id", async (req, res) => {
 router.post("/checkChallengeStatus/:id", async (req, res) => {
   const { ChallengeName } = req.body;
   const { id } = req.params;
-  // console.log(id, ChallengeName);s
+  // console.log(id, ChallengeName);
   const user = await User.findById(id);
   if (user) {
-    const findChallenge = user.Challenges.find(
+    const findChallenge =  user?.Challenges.find(
       (ch) => ch.ChallengeName == ChallengeName
     );
     // console.log(findChallenge);
@@ -146,34 +146,35 @@ router.post("/getParticularChallenge/:id", async (req, res) => {
   // console.log(id, ChallengeName, ChallengeType, ChallengeLevel);
   const collection = DB1.collection("Challenges");
   const findTopic = await collection.findOne({ ChallengeTopic: ChallengeType });
-
   if (findTopic) {
     let findChallenge;
-    switch (ChallengeLevel) {
+    switch (ChallengeLevel.toLowerCase()) {
       case "newbie":
         findChallenge = findTopic?.Challenges.newbieLevel.find(
-          (ch) => ch.title === ChallengeName
+          (ch) => ch.title == ChallengeName
         );
         break;
-      case "Junior":
+      case "junior":
         findChallenge = findTopic?.Challenges.juniorLevel.find(
-          (ch) => ch.title === ChallengeName
+          (ch) => ch.title == ChallengeName
         );
         break;
-      case "Expert":
+      case "expert":
         findChallenge = findTopic?.Challenges.expertLevel.find(
-          (ch) => ch.title === ChallengeName
+          (ch) => ch.title == ChallengeName
         );
         break;
-      case "Legend":
+      case "legend":
         findChallenge = findTopic?.Challenges.legendLevel.find(
-          (ch) => ch.title === ChallengeName
+          (ch) => ch.title == ChallengeName
         );
         break;
       default:
         return res.status(400).send("Invalid challenge level");
     }
-    res.send(findChallenge);
+    // console.log("cha",findChallenge);
+    
+    res.status(200).json({challenge: findChallenge});
   } else {
     res.status(404).send("Challenge topic not found");
   }

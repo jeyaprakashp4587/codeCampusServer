@@ -157,21 +157,7 @@ const initializeSocket = (server) => {
       }
     })
     // implemetn socket for text firebase notification
-    socket.on("bb", async (data) => {
-      const { token, msg } = data;
-      console.log(token,msg);
-      await admin
-        .messaging()
-        .send({
-          
-          notification: {
-            title: "Test Notification",
-            body: "Hello World",
-          },
-        }).then(console.log("send sucessfull")
-      ).catch((err) => console.log(err)
-      )
-    });
+   
     // Handle socket disconnection
     socket.on("disconnect", async () => {
       console.log(`User disconnected: ${socket.id}`);

@@ -134,26 +134,23 @@ router.post("/deletePost/:id", async (req, res) => {
 // Get connection posts
 router.get("/getConnectionPosts/:userId", async (req, res) => {
   const { userId } = req.params;
+  const { skip = 0, limit = 10 } = req.query; // Default skip and limit
 
   try {
-    // Validate userId
     if (!mongoose.Types.ObjectId.isValid(userId)) {
       return res.status(400).send("Invalid userId");
     }
 
-    // Find the user
     const user = await User.findById(userId).exec();
     if (!user) {
       return res.status(404).send("User not found");
     }
 
-    // Get post IDs from ConnectionsPost
     const postIds = user.ConnectionsPost.map((post) => post.postId);
     if (postIds.length === 0) {
       return res.status(200).json([]); // No posts found
     }
 
-    // Fetch posts with sender details
     const posts = await User.aggregate([
       { $unwind: "$Posts" },
       {
@@ -186,9 +183,11 @@ router.get("/getConnectionPosts/:userId", async (req, res) => {
           "SenderDetails.LastName": 1,
           "SenderDetails.Images.profile": 1,
           "SenderDetails.InstitudeName": 1,
-          "SenderDetails._id":1
+          "SenderDetails._id": 1,
         },
       },
+      { $skip: parseInt(skip) }, // Skip posts for pagination
+      { $limit: parseInt(limit) }, // Limit the number of posts
     ]);
 
     res.status(200).json(posts);
@@ -197,6 +196,7 @@ router.get("/getConnectionPosts/:userId", async (req, res) => {
     res.status(500).send("An error occurred while fetching connection posts.");
   }
 });
+
 
 // Like post
 // Like post
