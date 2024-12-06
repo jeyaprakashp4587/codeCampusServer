@@ -115,7 +115,7 @@ router.get("/getNetworks/:id", async (req, res) => {
         })
       );
     }
-    res.status(200).send(users);
+    res.status(200).json({ users: users });
   } catch (error) {
     console.error('Error fetching user networks:', error);
     res.status(500).json({ success: false, message: 'Internal server error' });
