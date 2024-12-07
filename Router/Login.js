@@ -33,7 +33,8 @@ router.post("/signIn", async (req, res) => {
   const { Email, Password } = req.body;
   // Convert the email to lowercase
   const lowerCaseEmail = Email.toLowerCase().trim();
-
+  //  console.log(Email,Password);
+   
   // Find the email user id
   const findEmailUser = await User.findOne({ Email: lowerCaseEmail });
   if (findEmailUser) {
@@ -100,13 +101,13 @@ router.post("/signUp", async (req, res) => {
  const mailOptions = {
   from: 'jeyaprakashp431@gmail.com',
   to: lowerCaseEmail,
-  subject: 'Welcome to CodeCampus!',
+  subject: 'Welcome to CodeZAck!',
   html: `
     <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-      <h1 style="color: #4CAF50;">Welcome to CodeCampus, ${First_Name}!</h1>
-      <p>Thank you for signing up for <strong>CodeCampus</strong>, the ultimate learning hub for coding enthusiasts like you.</p>
-      <h2>About CodeCampus</h2>
-      <p>At CodeCampus, we aim to make learning programming languages and software development both fun and accessible. Whether you're a beginner or an expert, you'll find something here for you!</p>
+      <h1 style="color: #4CAF50;">Welcome to CodeZAck, ${First_Name}!</h1>
+      <p>Thank you for signing up for <strong>CodeZAck</strong>, the ultimate learning hub for coding enthusiasts like you.</p>
+      <h2>About CodeZAck</h2>
+      <p>At CodeZAck, we aim to make learning programming languages and software development both fun and accessible. Whether you're a beginner or an expert, you'll find something here for you!</p>
       <h3>Here’s what you can explore:</h3>
       <ul>
         <li><strong>Learn to Code:</strong> Comprehensive tutorials for front-end, back-end, and app development.</li>
@@ -117,7 +118,7 @@ router.post("/signUp", async (req, res) => {
       <h3>Get Started</h3>
       <p>Log in now and dive into the world of coding. Let’s embark on this exciting journey together!</p>
       <p>If you have any questions, feel free to contact us anytime. We're here to help.</p>
-      <p style="margin-top: 20px;">Happy Coding!<br><strong>The CodeCampus Team</strong></p>
+      <p style="margin-top: 20px;">Happy Coding!<br><strong>The CodeZAck Team</strong></p>
     </div>
     `,
    };

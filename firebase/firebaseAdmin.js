@@ -1,7 +1,7 @@
 const admin = require('firebase-admin');
 
 // Load the service account key JSON
-const serviceAccount = require('../serviceKey.json');
+const serviceAccount = require('../loanbuddy-aa9c3-firebase-adminsdk-w6b3p-857465bb2d.json');
 
 // Custom function to initialize Firebase Admin SDK
 const initializeFirebaseAdmin = () => {

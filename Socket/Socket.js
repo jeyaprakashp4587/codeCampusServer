@@ -1,6 +1,7 @@
 const Socket = require("socket.io");
 const User = require("../Models/User");
 const initializeFirebaseAdmin = require('../firebase/firebaseAdmin');
+
 const initializeSocket = (server) => {
   const io = Socket(server, {
     cors: {
@@ -8,18 +9,20 @@ const initializeSocket = (server) => {
       methods: ["GET", "POST"],
     },
   });
-  //  init firebase
+
+  // Initialize Firebase Admin
   const admin = initializeFirebaseAdmin();
-    // Socket initialization
+
+  // Socket initialization
   io.on("connection", async (socket) => {
     const userId = socket.handshake.query.userId;
 
-    // Update the socket id in the database
+    // Update the socket ID in the database
     if (userId) {
       try {
         const updatedUser = await User.findByIdAndUpdate(
           userId,
-          { SocketId: socket.id }, // Update socket ID
+          { SocketId: socket.id },
           { new: true }
         );
         console.log(
@@ -51,8 +54,24 @@ const initializeSocket = (server) => {
           await Receiver.save();
 
           if (Receiver.SocketId) {
-            io.to(Receiver.SocketId).emit("Noti-test", {
-              text: `You are Connected With ${Sender.firstName}_${Sender.LastName}`,
+            io.to(Receiver.SocketId).emit("Receive-Noti", {
+              text: `You are Connected With ${Sender.firstName} ${Sender.LastName}`,
+            });
+          }
+
+          // Send FCM Notification
+          if (Receiver.FcmToken) {
+            await admin.messaging().send({
+              token: Receiver.FcmToken,
+              notification: {
+                title: "New Connection!",
+                body: `You are connected with ${Sender.firstName} ${Sender.LastName}`,
+              },
+              data: {
+                type: "connection",
+                senderId: SenderId,
+                time: Time,
+              },
             });
           }
         }
@@ -64,107 +83,158 @@ const initializeSocket = (server) => {
     // Handle post notifications for user's connections
     socket.on("PostNotiToConnections", async (data) => {
       const { Time, postId } = data;
+
       try {
         const user = await User.findById(userId);
-        const usersConnections = user.Connections.map(
-          (conn) => conn.ConnectionsdId
-        );
-        // Send notifications to all connections in parallel
-        await Promise.all(
-          usersConnections.map(async (id) => {
-            const connectionUser = await User.findById(id);
-            if (connectionUser) {
-              connectionUser.Notifications.push({
-                NotificationType: "post",
-                NotificationText: `${user.firstName} ${user.LastName} uploaded a post`,
-                NotificationSender: user._id,
-                Time,
-                postId,
-              });
-              await connectionUser.save();
-              if (connectionUser?.SocketId) {
-                io.to(connectionUser?.SocketId).emit("Noti-test", {
-                  text: `${user.firstName} ${user.LastName} uploaded a post`,
-                });
-              }
-            }
-          })
-        );
+        const userConnections = user.Connections.map((conn) => conn.ConnectionsdId);
+
+        const connectionsUsers = await User.find({ _id: { $in: userConnections } });
+
+        // Send FCM Notifications to all connections
+        const fcmTokens = connectionsUsers
+          .filter((connUser) => connUser.FcmToken)
+          .map((connUser) => connUser.FcmToken);
+
+        if (fcmTokens.length > 0) {
+          await admin.messaging().sendMulticast({
+            tokens: fcmTokens,
+            notification: {
+              title: "New Post!",
+              body: `${user.firstName} ${user.LastName} uploaded a new post`,
+            },
+            data: {
+              type: "post",
+              senderId: user._id.toString(),
+              postId,
+              time: Time,
+            },
+          });
+        }
+
+        // Emit socket notifications
+        connectionsUsers.forEach(async (connUser) => {
+          connUser.Notifications.push({
+            NotificationType: "post",
+            NotificationText: `${user.firstName} ${user.LastName} uploaded a post`,
+            NotificationSender: user._id,
+            Time,
+            postId,
+          });
+
+          await connUser.save();
+
+          if (connUser.SocketId) {
+            io.to(connUser.SocketId).emit("Receive-Noti", {
+              text: `${user.firstName} ${user.LastName} uploaded a post`,
+            });
+          }
+        });
       } catch (error) {
         console.error("Error notifying connections:", error.message);
       }
     });
 
-    // Check notification
-    socket.on("checkNotification", (data) => {
-      if (data.socketId) {
-        io.to(data.socketId).emit("updateNoti", { text: "success" });
-      }
-    });
-    // send notificatio to receier for like post
+    // Send notification to post uploader when a post is liked
     socket.on("LikeNotiToUploader", async (data) => {
-      const { Time, postId,senderId } = data;
+      const { Time, postId, senderId } = data;
+
       try {
         const user = await User.findById(userId);
         const postSender = await User.findById(senderId);
+
         if (user && postSender) {
           postSender.Notifications.push({
-            NotificationSender: user?._id,
+            NotificationSender: user._id,
             NotificationType: "post",
-            NotificationText: `${user?.firstName} ${user?.LastName} Liked your post`,
-            Time,
-            postId
-          })
-          await postSender.save();
-          if (postSender?.SocketId) {
-            io.to(postSender.SocketId).emit("Noti-test", {
-                  text: `${user.firstName} ${user.LastName} Liked your post`,
-                })
-          }
-        }
-        // 
-      } catch (err) {
-        console.log(err);
-        
-      }
-    })
-      // send notificatio to receier for comment post
-    socket.on("CommentNotiToUploader", async (data) => {
-      const { Time, postId,senderId } = data;
-      try {
-        const user = await User.findById(userId);
-        const postSender = await User.findById(senderId);
-        if (user && postSender) {
-          postSender.Notifications.push({
-            NotificationSender: user?._id,
-            NotificationType: "post",
-            NotificationText: `${user?.firstName} ${user?.LastName} Commented to your post`,
+            NotificationText: `${user.firstName} ${user.LastName} liked your post`,
             Time,
             postId,
-            
-          })
+          });
+
           await postSender.save();
-          if (postSender?.SocketId) {
-            io.to(postSender.SocketId).emit("Noti-test", {
-                  text: `${user.firstName} ${user.LastName} Commented to your post`,
-                })
+
+          if (postSender.SocketId) {
+            io.to(postSender.SocketId).emit("Receive-Noti", {
+              text: `${user.firstName} ${user.LastName} liked your post`,
+            });
+          }
+
+          // Send FCM Notification
+          if (postSender.FcmToken) {
+            await admin.messaging().send({
+              token: postSender.FcmToken,
+              notification: {
+                title: "Your Post Got a Like!",
+                body: `${user.firstName} ${user.LastName} liked your post`,
+              },
+              data: {
+                type: "like",
+                postId,
+                senderId: user._id.toString(),
+                time: Time,
+              },
+            });
           }
         }
-        // 
       } catch (err) {
-        console.log(err);
-        
+        console.error("Error sending like notification:", err.message);
       }
-    })
-    // implemetn socket for text firebase notification
-   
+    });
+
+    // Send notification to post uploader when a comment is added
+    socket.on("CommentNotiToUploader", async (data) => {
+      const { Time, postId, senderId } = data;
+
+      try {
+        const user = await User.findById(userId);
+        const postSender = await User.findById(senderId);
+
+        if (user && postSender) {
+          postSender.Notifications.push({
+            NotificationSender: user._id,
+            NotificationType: "post",
+            NotificationText: `${user.firstName} ${user.LastName} commented on your post`,
+            Time,
+            postId,
+          });
+
+          await postSender.save();
+
+          if (postSender.SocketId) {
+            io.to(postSender.SocketId).emit("Receive-Noti", {
+              text: `${user.firstName} ${user.LastName} commented on your post`,
+            });
+          }
+
+          // Send FCM Notification
+          if (postSender.FcmToken) {
+            await admin.messaging().send({
+              token: postSender.FcmToken,
+              notification: {
+                title: "New Comment!",
+                body: `${user.firstName} ${user.LastName} commented on your post`,
+              },
+              data: {
+                type: "comment",
+                postId,
+                senderId: user._id.toString(),
+                time: Time,
+              },
+            });
+          }
+        }
+      } catch (err) {
+        console.error("Error sending comment notification:", err.message);
+      }
+    });
+
     // Handle socket disconnection
     socket.on("disconnect", async () => {
       console.log(`User disconnected: ${socket.id}`);
       try {
         await User.findOneAndUpdate(
           { SocketId: socket.id },
-          { SocketId: null } // Remove the SocketId on disconnect
+          { SocketId: null }
         );
       } catch (error) {
         console.error("Error handling disconnect:", error.message);
