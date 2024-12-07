@@ -5,64 +5,68 @@ const User = require("../Models/User");
 // Add Course
 router.post("/addCourse", async (req, res) => {
   const { courseName, userId } = req.body;
-  // console.log(courseName);
+
   try {
+    // Find the user by ID
     const user = await User.findById(userId);
-    if (user) {
-      // Check if the course name already exists
-      const existsCourse = user.Courses.some(
-        (course) => course.Course_Name === courseName
-      );
-
-      if (existsCourse) {
-        return res.send("Enrolled");
-      }
-
-      // Add course if it doesn't exist
-      user.Courses.push({ Course_Name: courseName, Technologies: [] });
-      await user.save();
-      res.status(200).json({courses: user.Courses})
-    } else {
-      res.status(404).send("User not found.");
+    if (!user) {
+      return res.status(404).send("User not found.");
     }
+
+    // Check if the course already exists
+    const existsCourse = user.Courses.some(
+      (course) => course.Course_Name === courseName
+    );
+    if (existsCourse) {
+      return res.send("Enrolled");
+    }
+
+    // Add the course and save
+    user.Courses.push({ Course_Name: courseName, Technologies: [] });
+    await user.save();
+
+    return res.status(200).json({ courses: user.Courses });
   } catch (error) {
-    res.status(500).send("Server error: " + error.message);
+    console.error("Error adding course:", error);
+    return res.status(500).send("Server error: " + error.message);
   }
 });
 
 // Add Technology to Course
 router.post("/addTech", async (req, res) => {
   const { TechName, CourseName, UserId } = req.body;
+
   try {
+    // Find the user by ID
     const user = await User.findById(UserId);
-    if (user) {
-      // Find the course
-      const course = user.Courses.find(
-        (course) => course.Course_Name === CourseName
-      );
-
-      if (!course) {
-        return res.status(404).send("Course not found.");
-      }
-
-      // Check if the technology is already added
-      const existsTech = course.Technologies.some(
-        (tech) => tech.TechName === TechName
-      );
-
-      if (existsTech) {
-        return res.send("Enrolled");
-      }
-
-      // Add the technology
-      course.Technologies.push({ TechName: TechName, Points: 0 });
-      await user.save();
-      res.status(200).json({Tech: user.Courses});
-    } else {
-      res.status(404).send("User not found.");
+    if (!user) {
+      return res.status(404).send("User not found.");
     }
+
+    // Find the course by name
+    const course = user.Courses.find(
+      (course) => course.Course_Name === CourseName
+    );
+    if (!course) {
+      return res.status(404).send("Course not found.");
+    }
+
+    // Check if the technology already exists in the course
+    const existsTech = course.Technologies.some(
+      (tech) => tech.TechName === TechName
+    );
+    if (existsTech) {
+      return res.send("Enrolled");
+    }
+
+    // Add the technology and save
+    course.Technologies.push({ TechName, Points: 0 });
+    await user.save();
+
+    return res.status(200).json({ Tech: user.Courses });
   } catch (error) {
-    res.status(500).send("Server error: " + error.message);
+    console.error("Error adding technology:", error);
+    return res.status(500).send("Server error: " + error.message);
   }
 });
 
@@ -71,26 +75,28 @@ router.post("/removeCourse", async (req, res) => {
   const { userId, CourseName } = req.body;
 
   try {
+    // Find the user by ID
     const user = await User.findById(userId);
-    if (user) {
-      // Find the course index
-      const courseIndex = user.Courses.findIndex(
-        (course) => course.Course_Name === CourseName
-      );
-
-      if (courseIndex === -1) {
-        return res.status(404).send("Course not found.");
-      }
-
-      // Remove the course
-      user.Courses.splice(courseIndex, 1);
-      await user.save();
-      res.status(200).json({course: user.Courses})
-    } else {
-      res.status(404).send("User not found.");
+    if (!user) {
+      return res.status(404).send("User not found.");
     }
+
+    // Find the course index
+    const courseIndex = user.Courses.findIndex(
+      (course) => course.Course_Name === CourseName
+    );
+    if (courseIndex === -1) {
+      return res.status(404).send("Course not found.");
+    }
+
+    // Remove the course and save
+    user.Courses.splice(courseIndex, 1);
+    await user.save();
+
+    return res.status(200).json({ course: user.Courses });
   } catch (error) {
-    res.status(500).send("Server error: " + error.message);
+    console.error("Error removing course:", error);
+    return res.status(500).send("Server error: " + error.message);
   }
 });
 

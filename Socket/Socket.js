@@ -66,6 +66,7 @@ const initializeSocket = (server) => {
               notification: {
                 title: "New Connection!",
                 body: `You are connected with ${Sender.firstName} ${Sender.LastName}`,
+                imageUrl: Sender.Images.profile
               },
               data: {
                 type: "connection",
@@ -101,6 +102,7 @@ const initializeSocket = (server) => {
             notification: {
               title: "New Post!",
               body: `${user.firstName} ${user.LastName} uploaded a new post`,
+            
             },
             data: {
               type: "post",
@@ -166,6 +168,7 @@ const initializeSocket = (server) => {
               notification: {
                 title: "Your Post Got a Like!",
                 body: `${user.firstName} ${user.LastName} liked your post`,
+                imageUrl: user.Images.profile
               },
               data: {
                 type: "like",
@@ -213,6 +216,7 @@ const initializeSocket = (server) => {
               notification: {
                 title: "New Comment!",
                 body: `${user.firstName} ${user.LastName} commented on your post`,
+                imageUrl: user.Images.profile
               },
               data: {
                 type: "comment",

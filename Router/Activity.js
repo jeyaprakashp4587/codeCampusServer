@@ -8,28 +8,37 @@ router.post("/setActivity/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
-    // Find the user
-    const user = await User.findById(id);
-    if (user) {
-      // Check if the date already exists
-      const existsDate = user.Activities.find(
-        (activity) => activity.date == Date
-      );
-
-      if (!existsDate) {
-        // If the date doesn't exist, create a new entry
-        user.Activities.push({
-          date: Date,
-          activities: [{ activityName: ActivityName }],
-        });
-      } else {
-        // If the date exists, add a new activity
-        existsDate.activities.push({ activityName: ActivityName });
+    const result = await User.findOneAndUpdate(
+      { _id: id, "Activities.date": Date },
+      {
+        $setOnInsert: { _id: id },
+        $push: {
+          "Activities.$[element].activities": { activityName: ActivityName },
+        },
+      },
+      {
+        new: true,
+        upsert: true,
+        arrayFilters: [{ "element.date": Date }],
       }
-      await user.save();
+    );
+
+    if (result) {
       res.send("Activity added successfully");
     } else {
-      res.status(404).send("User not found");
+      // If date is not found, insert a new activity entry
+      await User.updateOne(
+        { _id: id },
+        {
+          $push: {
+            Activities: {
+              date: Date,
+              activities: [{ activityName: ActivityName }],
+            },
+          },
+        }
+      );
+      res.send("Activity added successfully");
     }
   } catch (error) {
     res.status(500).send("Server error: " + error.message);
@@ -37,12 +46,11 @@ router.post("/setActivity/:id", async (req, res) => {
 });
 
 // Get all activity dates for a user
-router.post("/getAllActivityDates/:id", async (req, res) => {
+router.get("/getAllActivityDates/:id", async (req, res) => {
   const { id } = req.params;
 
   try {
-    // Find the user
-    const user = await User.findById(id);
+    const user = await User.findById(id, "Activities.date");
     if (user) {
       const dates = user.Activities.map((activity) => activity.date);
       res.send(dates);
@@ -60,19 +68,15 @@ router.post("/getParticularDateActivities/:id", async (req, res) => {
   const { Date } = req.body;
 
   try {
-    // Find the user
-    const user = await User.findById(id);
-    if (user) {
-      const dateActivities = user.Activities.find(
-        (activity) => activity.date == Date
-      );
-      if (dateActivities) {
-        res.send(dateActivities.activities);
-      } else {
-        res.status(404).send("No activities found for this date");
-      }
+    const user = await User.findOne(
+      { _id: id, "Activities.date": Date },
+      { "Activities.$": 1 }
+    );
+
+    if (user && user.Activities.length > 0) {
+      res.send(user.Activities[0].activities);
     } else {
-      res.status(404).send("User not found");
+      res.status(404).send("No activities found for this date");
     }
   } catch (error) {
     res.status(500).send("Server error: " + error.message);

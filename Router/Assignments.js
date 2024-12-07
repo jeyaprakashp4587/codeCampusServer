@@ -3,77 +3,93 @@ const router = express.Router();
 const User = require("../Models/User");
 const { DB1 } = require("../Database/CCDB");
 
-//
-router.get("/getAssignments/:assignmentTye", async (req, res) => {
-  const { assignmentTye } = req.params;
-  // console.log(assignmentTye);
-  const collection = DB1.collection("Quiz");
-  const findAssignment = await collection.findOne({
-    AssignmentType: assignmentTye,
-  });
-  //   console.log(findAssignment);
-  res.send(findAssignment.Quiz);
+// Get assignments by type
+router.get("/getAssignments/:assignmentType", async (req, res) => {
+  const { assignmentType } = req.params;
+
+  try {
+    const collection = DB1.collection("Quiz");
+
+    // Find the assignment by type
+    const findAssignment = await collection.findOne(
+      { AssignmentType: assignmentType },
+      { projection: { Quiz: 1 } } // Fetch only the Quiz field
+    );
+
+    if (findAssignment) {
+      res.send(findAssignment.Quiz);
+    } else {
+      res.status(404).json({ message: "Assignment type not found" });
+    }
+  } catch (error) {
+    console.error("Error while fetching assignments:", error);
+    res.status(500).json({ message: "Server error" });
+  }
 });
 
-// save the assignment
+// Save the assignment
 router.post("/saveAssignment/:id", async (req, res) => {
+  const { id } = req.params;
+  const { AssignmentType, point, level } = req.body;
+
   try {
-    const { id } = req.params;
-    const { AssignmentType, point, level } = req.body;
-    console.log(AssignmentType,point,level);
-    
-    // Find the user by ID
-    const user = await User.findById(id);
+    // Update or add assignment
+    const update = {
+      $setOnInsert: { Assignments: [] }, // Initialize assignments array if the user doesn't exist
+      $addToSet: {
+        "Assignments.$[assignment].AssignmentLevel": {
+          LevelType: level,
+          point,
+        },
+      },
+    };
+
+    const options = {
+      arrayFilters: [{ "assignment.AssignmentType": AssignmentType }],
+      upsert: true,
+      new: true,
+    };
+
+    const user = await User.findOneAndUpdate(
+      { _id: id },
+      update,
+      options
+    );
+
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Update or add assignment
-    let assignment = user.Assignments.find(a => a.AssignmentType === AssignmentType);
-    if (assignment) {
-      assignment.AssignmentLevel.push({ LevelType: level, point });
-    } else {
-      user.Assignments.push({
-        AssignmentType,
-        AssignmentLevel: [{ LevelType: level, point }]
-      });
-    }
+    // Increment course points
+    const courseUpdate = {
+      $inc: {
+        "Courses.$[course].Technologies.$[tech].Points":
+          level.toLowerCase() === "easy"
+            ? 2
+            : level.toLowerCase() === "medium"
+            ? 3
+            : level.toLowerCase() === "hard"
+            ? 5
+            : 0,
+      },
+    };
 
-    // Increment course points if the technology matches the assignment type
-    const course = user.Courses.find(course =>
-      course.Technologies.some(tech => tech.TechName.toLowerCase() == AssignmentType.toLowerCase())
-    );
+    const courseOptions = {
+      arrayFilters: [
+        { "course.Technologies.TechName": { $regex: AssignmentType, $options: "i" } },
+        { "tech.TechName": { $regex: AssignmentType, $options: "i" } },
+      ],
+    };
 
-    if (course) {
-      const tech = course.Technologies.find(
-        tech => tech.TechName.toLowerCase() == AssignmentType.toLowerCase()
-      );
+    await User.updateOne({ _id: id }, courseUpdate, courseOptions);
 
-      if (tech) {
-        switch (level.toLowerCase()) {
-          case "easy":
-            tech.Points += 2;
-            break;
-          case "medium":
-            tech.Points += 3;
-            break;
-          case "hard":
-            tech.Points += 5;
-            break;
-        }
-      }
-    }
-
-    // Save the updated user data
-    await user.save();
-
-    // Send the updated user data in the response
-    res.status(200).json({Assignments: user.Assignments})
+    // Fetch the updated assignments for the response
+    const updatedUser = await User.findById(id, "Assignments");
+    res.status(200).json({ Assignments: updatedUser.Assignments });
   } catch (error) {
     console.error("Server error while saving assignment:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
-
 
 module.exports = router;
