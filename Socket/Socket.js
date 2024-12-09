@@ -60,9 +60,9 @@ const initializeSocket = (server) => {
           }
 
           // Send FCM Notification
-          if (Receiver.FcmToken) {
+          if (Receiver.FcmId) {
             await admin.messaging().send({
-              token: Receiver.FcmToken,
+              token: Receiver.FcmId,
               notification: {
                 title: "New Connection!",
                 body: `You are connected with ${Sender.firstName} ${Sender.LastName}`,
@@ -93,8 +93,8 @@ const initializeSocket = (server) => {
 
         // Send FCM Notifications to all connections
         const fcmTokens = connectionsUsers
-          .filter((connUser) => connUser.FcmToken)
-          .map((connUser) => connUser.FcmToken);
+          .filter((connUser) => connUser.FcmId)
+          .map((connUser) => connUser.FcmId);
 
         if (fcmTokens.length > 0) {
           await admin.messaging().sendMulticast({
@@ -102,7 +102,6 @@ const initializeSocket = (server) => {
             notification: {
               title: "New Post!",
               body: `${user.firstName} ${user.LastName} uploaded a new post`,
-            
             },
             data: {
               type: "post",
@@ -162,9 +161,9 @@ const initializeSocket = (server) => {
           }
 
           // Send FCM Notification
-          if (postSender.FcmToken) {
+          if (postSender.FcmId) {
             await admin.messaging().send({
-              token: postSender.FcmToken,
+              token: postSender.FcmId,
               notification: {
                 title: "Your Post Got a Like!",
                 body: `${user.firstName} ${user.LastName} liked your post`,
@@ -210,9 +209,9 @@ const initializeSocket = (server) => {
           }
 
           // Send FCM Notification
-          if (postSender.FcmToken) {
+          if (postSender.FcmId) {
             await admin.messaging().send({
-              token: postSender.FcmToken,
+              token: postSender.FcmId,
               notification: {
                 title: "New Comment!",
                 body: `${user.firstName} ${user.LastName} commented on your post`,
