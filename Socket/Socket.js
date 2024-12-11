@@ -102,6 +102,8 @@ const initializeSocket = (server) => {
             notification: {
               title: "New Post!",
               body: `${user.firstName} ${user.LastName} uploaded a new post`,
+              
+                icon: "https://i.ibb.co/j6qShGt/CC.png"
             },
             data: {
               type: "post",
@@ -135,7 +137,7 @@ const initializeSocket = (server) => {
       }
     });
 
-    // Send notification to post uploader when a post is liked
+    // Send a notification ro post uploader
     socket.on("LikeNotiToUploader", async (data) => {
       const { Time, postId, senderId } = data;
 
@@ -167,7 +169,9 @@ const initializeSocket = (server) => {
               notification: {
                 title: "Your Post Got a Like!",
                 body: `${user.firstName} ${user.LastName} liked your post`,
-                imageUrl: user.Images.profile
+                imageUrl: user.Images.profile,
+                
+                icon: "https://i.ibb.co/j6qShGt/CC.png"
               },
               data: {
                 type: "like",
@@ -215,7 +219,8 @@ const initializeSocket = (server) => {
               notification: {
                 title: "New Comment!",
                 body: `${user.firstName} ${user.LastName} commented on your post`,
-                imageUrl: user.Images.profile
+                imageUrl: user.Images.profile,
+                icon: "https://i.ibb.co/j6qShGt/CC.png"
               },
               data: {
                 type: "comment",

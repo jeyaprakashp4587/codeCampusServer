@@ -92,7 +92,7 @@ router.post("/removeConnection/:id", async (req, res) => {
 // get user networks connecton
 router.get("/getNetworks/:id", async (req, res) => {
   const { id } = req.params;
-  // console.log(id);
+  console.log(id);
   try {
     const selectedUser = await User.findById(id);
     const users = [];
