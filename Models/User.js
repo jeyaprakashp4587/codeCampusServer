@@ -117,6 +117,14 @@ const UserSchema = new Schema({
     warStatus: {type: Boolean},
     opponent: {profile: String,Name: String},
     judge: { profile: String, Name: String },    
+  },
+  // connections notes
+  ConnectionsNotes: [{
+   NotesId: String,
+  }
+  ],
+  Notes: {
+    NotesText: String,
   }
 });
 

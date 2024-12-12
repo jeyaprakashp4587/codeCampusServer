@@ -5,6 +5,8 @@ const User = require("../Models/User");
 // GET request to fetch all notifications for a user
 router.get("/getNotifications/:userId", async (req, res) => {
   const { userId } = req.params;
+  console.log(userId);
+
   try {
     const user = await User.findById(userId);
     if (user) {
@@ -12,34 +14,54 @@ router.get("/getNotifications/:userId", async (req, res) => {
         // Map over notifications and combine the notification text with sender details
         const notificationsWithSender = await Promise.all(
           user.Notifications.map(async (notification) => {
-            // Find the user by ID to get the sender's data
-            const sender = await User.findById(
-              notification.NotificationSender,
-              "firstName lastName Images.profile"
-            );
+            try {
+              // Find the user by ID to get the sender's data
+              const sender = await User.findById(
+                notification.NotificationSender,
+                "firstName LastName Images.profile"
+              );
 
-            return {
-              NotificationId: notification._id,
-              NotificationType: notification.NotificationType,
-              NotificationText: notification.NotificationText,
-              NotificationSender: notification.NotificationSender,
-              Time: notification.Time,
-              seen: notification.seen,
-              senderFirstName: notification.senderFirstName || sender.firstName, // Fall back to stored data
-              senderLastName: notification.senderLastName || sender.LastName,
-              senderProfileImage:
-                notification.senderProfileImage || sender.Images.profile,
-              postId: notification.postId ? notification.postId : null, // Profile image
-            };
+              return {
+                NotificationId: notification._id,
+                NotificationType: notification.NotificationType,
+                NotificationText: notification.NotificationText,
+                NotificationSender: notification.NotificationSender,
+                Time: notification.Time,
+                seen: notification.seen,
+                senderFirstName: sender?.firstName || "Unknown", // Default to "Unknown"
+                senderLastName: sender?.LastName || "User",
+                senderProfileImage: sender?.Images?.profile || null,
+                postId: notification.postId || null,
+              };
+            } catch (err) {
+              console.error(
+                `Error processing notification ${notification._id}: ${err.message}`
+              );
+              return {
+                NotificationId: notification._id,
+                NotificationType: notification.NotificationType,
+                NotificationText: notification.NotificationText,
+                NotificationSender: notification.NotificationSender,
+                Time: notification.Time,
+                seen: notification.seen,
+                senderFirstName: "Unknown", // Default fallback
+                senderLastName: "User",
+                senderProfileImage: null,
+                postId: notification.postId || null,
+              };
+            }
           })
         );
 
         res.status(200).send(notificationsWithSender);
+      } else {
+        res.status(404).send([]); // No notifications found
       }
     } else {
-      res.status(404).send([]);
+      res.status(404).send({ message: "User not found." });
     }
   } catch (error) {
+    console.error(error);
     res.status(500).send({ message: "Server error.", error: error.message });
   }
 });

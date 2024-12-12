@@ -10,7 +10,7 @@ router.post("/splash", async (req, res) => {
   }
   // console.log("Received email:", Email);
   try {
-    const user = await User.findOne({ Email: Email });
+  const user = await User.findOne({ Email: Email }, { Notifications: 0 }).lean();
     if (user) {
       return res.status(200).json({user: user}); // Respond with the user
     } else {
