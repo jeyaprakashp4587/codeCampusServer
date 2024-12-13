@@ -536,5 +536,114 @@ router.get("/getPostDetails/:postId", async (req, res) => {
     });
   }
 });
+// upload notes
+router.post('/uploadNote', async (req, res) => {
+  const { userId, noteText } = req.body;
+
+  // Validate request
+  if (!userId || !noteText) {
+    return res.status(400).json({ success: false, message: 'User ID and note text are required' });
+  }
+
+  try {
+    // Find the user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+
+    // Generate a new note ID
+    const noteId = new mongoose.Types.ObjectId();
+
+    // Update the user's Notes field
+    user.Notes = { NotesText: noteText };
+
+    // Add the note ID to the ConnectionsNotes of the user
+    user.ConnectionsNotes.push({
+      NotesId: noteId,
+      NotesSenderId: user._id,
+    });
+
+    // Save the user
+    await user.save();
+
+    // Update all connections' ConnectionsNotes
+    const connectionIds = user.Connections.map((c) => c.ConnectionsdId); // Array of connection IDs
+    await User.updateMany(
+      { _id: { $in: connectionIds } },
+      {
+        $push: {
+          ConnectionsNotes: {
+            NotesId: noteId,
+            NotesSenderId: user._id,
+          },
+        },
+      }
+    );
+
+    // Response
+    res.status(200).json({
+      success: true,
+      message: 'Note uploaded successfully',
+    });
+  } catch (error) {
+    console.error('Error uploading note:', error);
+    res.status(500).json({
+      success: false,
+      message: 'An error occurred while uploading the note',
+    });
+  }
+});
+// get notes data
+router.get('/getConnectionNotes/:userId', async (req, res) => {
+  const { userId } = req.params;
+
+  // Validate request
+  if (!userId) {
+    return res.status(400).json({ success: false, message: 'User ID is required' });
+  }
+
+  try {
+    // Perform aggregation to fetch notes with sender details from the User collection
+    const userNotes = await User.aggregate([
+      { $match: { _id: new mongoose.Types.ObjectId(userId) } }, // Use 'new' to instantiate ObjectId
+      {
+        $unwind: '$ConnectionsNotes', // Unwind the ConnectionsNotes array to process each entry
+      },
+      {
+        $lookup: {
+          from: 'users', // Look up sender details from the same User collection
+          localField: 'ConnectionsNotes.NotesSenderId', // Field to join with the sender's data
+          foreignField: '_id', // Match on the user ID
+          as: 'senderDetails', // Name of the array where sender details will be stored
+        },
+      },
+      {
+        $project: {
+          _id: 0, // Exclude the user ID from the result
+          NotesText: '$Notes.NotesText', // Corrected to access NotesText from the Notes object
+          NotesSenderFirstName: { $arrayElemAt: ['$senderDetails.firstName', 0] }, // Get the sender's first name
+          NotesSenderLastName: { $arrayElemAt: ['$senderDetails.LastName', 0] }, // Get the sender's last name
+          NotesSenderProfile: { $arrayElemAt: ['$senderDetails.Images.profile', 0] },
+          NotesSenderId: {$arrayElemAt:['$senderDetails._id',0]}
+          // Get the sender's profile image
+        },
+      },
+    ]);
+    // Response with the aggregated notes data
+    // console.log(userNotes);
+    
+    res.status(200).json({
+      success: true,
+      notes: userNotes,
+    });
+  } catch (error) {
+    console.error('Error fetching notes:', error);
+    res.status(500).json({
+      success: false,
+      message: 'An error occurred while fetching notes',
+    });
+  }
+});
 
 module.exports = router;

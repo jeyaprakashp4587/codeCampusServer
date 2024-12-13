@@ -66,7 +66,7 @@ const UserSchema = new Schema({
     },
   ],
   Activities: [{ date: String, activities: [{ activityName: String }] }],
-  ConnectionsPost: [{ postId: String }],
+  ConnectionsPost: [{ postId: String ,createdAt: { type: Date, default: Date.now ,expires: 86400}, }],
   Notifications: [
     {
       NotificationType: String,
@@ -119,12 +119,17 @@ const UserSchema = new Schema({
     judge: { profile: String, Name: String },    
   },
   // connections notes
-  ConnectionsNotes: [{
-   NotesId: String,
+ ConnectionsNotes: [
+  {
+    NotesId: mongoose.Schema.Types.ObjectId, // Reference to the note
+    NotesSenderId: mongoose.Schema.Types.ObjectId, // Reference to the sender
+     createdAt: { type: Date, default: Date.now ,expires: 86400}, 
   }
-  ],
-  Notes: {
+],
+  Notes:
+  {
     NotesText: String,
+    createdAt: { type: Date, default: Date.now ,expires: 86400}, 
   }
 });
 
