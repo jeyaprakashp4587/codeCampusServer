@@ -86,8 +86,6 @@ router.post("/uploadPost", async (req, res) => {
     res.status(500).send("An error occurred while uploading the post.");
   }
 });
-
-
 // Delete post
 router.post("/deletePost/:id", async (req, res) => {
   const { postId } = req.body;
@@ -130,7 +128,6 @@ router.post("/deletePost/:id", async (req, res) => {
     res.status(500).send("An error occurred while deleting the post.");
   }
 });
-
 // Get connection posts
 router.get("/getConnectionPosts/:userId", async (req, res) => {
   const { userId } = req.params;
@@ -196,9 +193,6 @@ router.get("/getConnectionPosts/:userId", async (req, res) => {
     res.status(500).send("An error occurred while fetching connection posts.");
   }
 });
-
-
-// Like post
 // Like post
 router.post("/likePost/:postId", async (req, res) => {
   const { postId } = req.params;
@@ -259,7 +253,6 @@ router.post("/likePost/:postId", async (req, res) => {
       .json({ message: "An error occurred while liking the post." });
   }
 });
-
 // Unlike post
 router.post("/unlikePost/:postId", async (req, res) => {
   const { postId } = req.params;
@@ -647,3 +640,4 @@ router.get('/getConnectionNotes/:userId', async (req, res) => {
 });
 
 module.exports = router;
+ 
