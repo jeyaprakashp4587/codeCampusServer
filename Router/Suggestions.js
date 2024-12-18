@@ -14,8 +14,21 @@ router.get("/users/:id", async (req, res) => {
       return res.status(404).send("User not found");
     }
 
-    // Get random users (limit 6)
-    const users = await User.aggregate([{ $sample: { size: 6 } }]);
+    // Get random users (limit 6) with specific fields
+    const users = await User.aggregate([
+      { $sample: { size: 6 } },
+      {
+        $project: {
+          _id: 1, // Include userId
+          firstName: 1,
+          LastName: 1,
+          InstitudeName: 1,
+          "Images.coverImg": 1,
+          "Images.profile": 1
+         
+        },
+      },
+    ]);
 
     // Filter users who are not already connected
     const suggestedUsers = users.filter(
@@ -32,8 +45,10 @@ router.get("/users/:id", async (req, res) => {
       res.json([]); // If no suggestions, return an empty array
     }
   } catch (error) {
+    console.error(error);
     res.status(500).send("Error retrieving user suggestions");
   }
 });
+
 
 module.exports = router;
