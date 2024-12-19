@@ -79,7 +79,6 @@ router.post("/updateProfileData/:id", async (req, res) => {
 
 const coverImages = [
   "https://i.ibb.co/d0dBtHy/2148430879.jpg", 
-  "https://i.ibb.co/BLSggTg/129927.jpg", 
   "https://i.ibb.co/sKGscq7/129728.jpg"
 ];
 // set profile and cover image

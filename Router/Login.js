@@ -2,10 +2,11 @@ const express = require("express");
 const router = express.Router();
 const User = require("../Models/User");
 const nodemailer = require("nodemailer");
+const bcrypt = require('bcrypt');
 
 router.post("/splash", async (req, res) => {
   const { Email } = req.body;
-  console.log(Email);
+  // console.log(Email);
 
   if (!Email) {
     return res.status(400).json({ error: "Email is required" });
@@ -13,7 +14,7 @@ router.post("/splash", async (req, res) => {
   // console.log("Received email:", Email);
   try {
     const user = await User.findOne({ Email: Email }, { Notifications: 0 }).lean();
-    console.log(user);
+    // console.log(user);
     
     if (user) {
       return res.status(200).json({user: user}); // Respond with the user
@@ -26,25 +27,29 @@ router.post("/splash", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
-
-
 // SignIn route
 router.post("/signIn", async (req, res) => {
   const { Email, Password } = req.body;
-  // Convert the email to lowercase
-  const lowerCaseEmail = Email.toLowerCase().trim();
-  //  console.log(Email,Password);
-   
-  // Find the email user id
-  const findEmailUser = await User.findOne({ Email: lowerCaseEmail });
-  if (findEmailUser) {
-    if (findEmailUser.Password === Password) {
-      res.send(findEmailUser);
-    } else {
-      res.send("Password is Incorrect");
+
+  try {
+    // Convert the email to lowercase
+    const lowerCaseEmail = Email.toLowerCase().trim();
+
+    // Find the user by email
+    const findEmailUser = await User.findOne({ Email: lowerCaseEmail });
+    if (!findEmailUser) {
+      return res.status(400).send("Email or Password is Incorrect");
     }
-  } else {
-    res.send("Email or Password is Incorrect");
+    // Compare the provided password with the hashed password
+    const isPasswordCorrect = bcrypt.compare(Password, findEmailUser.Password);
+    if (!isPasswordCorrect) {
+      return res.status(400).send("Password is Incorrect");
+    }
+    // Successful login
+    res.json({ message: "SignIn Successful", user: findEmailUser });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Internal Server Error");
   }
 });
 
@@ -67,7 +72,7 @@ router.post("/signUp", async (req, res) => {
   // Convert the email to lowercase
   const lowerCaseEmail = Email.toLowerCase().trim();
   const lowerGender = Gender.toLowerCase().trim();
-
+ const hashedPassword = await bcrypt.hash(Password, 10);
   // Check if the email already exists
   const existMail = await User.findOne({ Email: Email });
   if (existMail) {
@@ -77,7 +82,7 @@ router.post("/signUp", async (req, res) => {
       firstName: First_Name,
       LastName: Last_Name,
       Email: lowerCaseEmail, // Save email in lowercase
-      Password: Password,
+      Password: hashedPassword,
       Gender: lowerGender,
       DateOfBirth: Date_Of_Birth,
       Degreename: Degree_name,
@@ -93,7 +98,7 @@ router.post("/signUp", async (req, res) => {
     service: 'gmail',
     auth: {
       user: 'jeyaprakashp431@gmail.com',
-      pass: 'qiri pwwh hcyn nrek ', // Use App Password here if using Gmail
+      pass: 'qiri pwwh hcyn nrek', // Use App Password here if using Gmail
     },
   });
 
@@ -101,13 +106,13 @@ router.post("/signUp", async (req, res) => {
  const mailOptions = {
   from: 'jeyaprakashp431@gmail.com',
   to: lowerCaseEmail,
-  subject: 'Welcome to CodeZAck!',
+  subject: 'Welcome to CodeZack!',
   html: `
     <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
-      <h1 style="color: #4CAF50;">Welcome to CodeZAck, ${First_Name}!</h1>
-      <p>Thank you for signing up for <strong>CodeZAck</strong>, the ultimate learning hub for coding enthusiasts like you.</p>
-      <h2>About CodeZAck</h2>
-      <p>At CodeZAck, we aim to make learning programming languages and software development both fun and accessible. Whether you're a beginner or an expert, you'll find something here for you!</p>
+      <h1 style="color: #4CAF50;">Welcome to CodeZack, ${First_Name}!</h1>
+      <p>Thank you for signing up for <strong>CodeZack</strong>, the ultimate learning hub for coding enthusiasts like you.</p>
+      <h2>About CodeZack</h2>
+      <p>At CodeZack, we aim to make learning programming languages and software development both fun and accessible. Whether you're a beginner or an expert, you'll find something here for you!</p>
       <h3>Here’s what you can explore:</h3>
       <ul>
         <li><strong>Learn to Code:</strong> Comprehensive tutorials for front-end, back-end, and app development.</li>
@@ -118,7 +123,7 @@ router.post("/signUp", async (req, res) => {
       <h3>Get Started</h3>
       <p>Log in now and dive into the world of coding. Let’s embark on this exciting journey together!</p>
       <p>If you have any questions, feel free to contact us anytime. We're here to help.</p>
-      <p style="margin-top: 20px;">Happy Coding!<br><strong>The CodeZAck Team</strong></p>
+      <p style="margin-top: 20px;">Happy Coding!<br><strong>The CodeZack Team</strong></p>
     </div>
     `,
    };
@@ -127,7 +132,6 @@ router.post("/signUp", async (req, res) => {
     res.json({ message:"SignUp Sucessfully",user:user});
   }
 });
-
 // get the user details for update when component refresh
 router.post("/getUser", async (req, res) => {
   const { userId } = req.body;
@@ -140,7 +144,7 @@ router.post("/getUser", async (req, res) => {
   // console.log("userId", userId);
 });
 // send resetPass otp
-router.post("/sendReserPassOtp", async (req, res) => {
+router.post("/sendResetPassOtp", async (req, res) => {
   const { email, otp } = req.body;
   const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -197,7 +201,7 @@ router.post('/resetNewPassword', async (req, res) => {
   }
   try {
     // Find the user by email
-    const user = await User.findOne({Email: email})
+    const user = await User.findOne({ Email: email })
     // console.log(user);
     
     if (!user) {
@@ -207,11 +211,11 @@ router.post('/resetNewPassword', async (req, res) => {
     else {
       user.Password = password;
       await user.save();
-      return res.status(200).json({msg:'ok'});
+      return res.status(200).json({ msg: 'ok' });
     }
   } catch (error) {
     console.log(err);
     
   }
-})
+});
 module.exports = router;
