@@ -5,12 +5,16 @@ const nodemailer = require("nodemailer");
 
 router.post("/splash", async (req, res) => {
   const { Email } = req.body;
+  console.log(Email);
+
   if (!Email) {
     return res.status(400).json({ error: "Email is required" });
   }
   // console.log("Received email:", Email);
   try {
-  const user = await User.findOne({ Email: Email }, { Notifications: 0 }).lean();
+    const user = await User.findOne({ Email: Email }, { Notifications: 0 }).lean();
+    console.log(user);
+    
     if (user) {
       return res.status(200).json({user: user}); // Respond with the user
     } else {
