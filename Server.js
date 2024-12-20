@@ -21,7 +21,9 @@ const Assignments = require("./Router/Assignments");
 const Wallet = require("./Router/Wallet");
 const Jobs = require("./Router/Jobs");
 const axios = require("axios")
+const cron = require('node-cron');
 const initializeFirebaseAdmin = require('./firebase/firebaseAdmin');
+const User = require("./Models/User");
 
 const app = express();
 const server = http.createServer(app);
@@ -40,6 +42,8 @@ DB1.on("connected", () => {
 DB2.on("connected", () => {
   console.log("DB2 is connected");
 });
+// inti cron jobs
+const {scheduleCronJob} = require('./CronJob/cronJob')
 
 // Routers
 app.use("/LogIn", LogIn);
@@ -58,7 +62,7 @@ app.use("/Wallet", Wallet);
 app.use("/InterView", Interview);
 app.use("/Jobs",Jobs)
 // 
-
+// run cron for delete notes
 // Self-ping endpoint
 // app.get("/ping", (req, res) => {
 //   res.status(200).send("Server is alive!");

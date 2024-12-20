@@ -549,7 +549,7 @@ router.post('/uploadNote', async (req, res) => {
     const noteId = new mongoose.Types.ObjectId();
 
     // Update the user's Notes field
-    user.Notes = { NotesText: noteText };
+    user.Notes = { NotesText: noteText ,NotesId: noteId};
 
     // Add the note ID to the ConnectionsNotes of the user
     user.ConnectionsNotes.push({
@@ -587,6 +587,58 @@ router.post('/uploadNote', async (req, res) => {
     });
   }
 });
+// delete notes
+router.post('/deleteNote', async (req, res) => {
+  const { userId, noteId } = req.body;
+  // console.log(noteId);
+  
+  // Validate request
+  if (!userId || !noteId) {
+    return res.status(400).json({ success: false, message: 'User ID and note ID are required' });
+  }
+  try {
+    // Find the user
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ success: false, message: 'User not found' });
+    }
+    // Remove the note from the user's Notes and ConnectionsNotes
+    // Remove from user's Notes
+    if (user.Notes && user.Notes.NotesId.toString() === noteId) {
+      user.Notes = {};  // Clear the user's note
+    }
+    // Remove the note from the user's ConnectionsNotes
+    user.ConnectionsNotes = user.ConnectionsNotes.filter(
+      (note) => note.NotesId.toString() !== noteId
+    );
+    // Update the user
+    await user.save();
+    // Remove the note from all connections' ConnectionsNotes
+    const connectionIds = user.Connections.map((c) => c.ConnectionsdId); // Array of connection IDs
+    await User.updateMany(
+      { _id: { $in: connectionIds } },
+      {
+        $pull: {
+          ConnectionsNotes: {
+            NotesId: noteId,
+          },
+        },
+      }
+    );
+    // Response
+    res.status(200).json({
+      success: true,
+      message: 'Note deleted successfully',
+    });
+  } catch (error) {
+    console.error('Error deleting note:', error);
+    res.status(500).json({
+      success: false,
+      message: 'An error occurred while deleting the note',
+    });
+  }
+});
+
 // get notes data
 router.get('/getConnectionNotes/:userId', async (req, res) => {
   const { userId } = req.params;
@@ -614,7 +666,9 @@ router.get('/getConnectionNotes/:userId', async (req, res) => {
       {
         $project: {
           _id: 0, // Exclude the user ID from the result
-          NotesText: '$Notes.NotesText', // Corrected to access NotesText from the Notes object
+          NotesText: '$Notes.NotesText',
+          NotesId: '$ConnectionsNotes.NotesId', 
+          // Corrected to access NotesText from the Notes object
           NotesSenderFirstName: { $arrayElemAt: ['$senderDetails.firstName', 0] }, // Get the sender's first name
           NotesSenderLastName: { $arrayElemAt: ['$senderDetails.LastName', 0] }, // Get the sender's last name
           NotesSenderProfile: { $arrayElemAt: ['$senderDetails.Images.profile', 0] },

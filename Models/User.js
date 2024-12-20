@@ -128,6 +128,7 @@ const UserSchema = new Schema({
 ],
   Notes:
   {
+     NotesId: mongoose.Schema.Types.ObjectId,
     NotesText: String,
     createdAt: { type: Date, default: Date.now ,expires: 86400}, 
   }
