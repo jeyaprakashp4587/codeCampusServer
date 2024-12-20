@@ -135,7 +135,7 @@ router.post("/signUp", async (req, res) => {
 // get the user details for update when component refresh
 router.post("/getUser", async (req, res) => {
   const { userId } = req.body;
-  const user = await User.findById(userId);
+ const user = await User.findById(userId, { notifications: 0,Challenges:0,  Activities: 0});
   // console.log(userId);
   if (user) {
     // console.log("send");
