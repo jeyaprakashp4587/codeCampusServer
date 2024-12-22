@@ -32,27 +32,33 @@ router.post("/signIn", async (req, res) => {
   const { Email, Password } = req.body;
 
   try {
+    // Validate input
+    if (!Email || !Password) {
+      return res.status(400).json({ error: "Email and Password are required." });
+    }
+
     // Convert the email to lowercase
     const lowerCaseEmail = Email.toLowerCase().trim();
 
     // Find the user by email
     const findEmailUser = await User.findOne({ Email: lowerCaseEmail });
     if (!findEmailUser) {
-      return res.status(400).send("Email or Password is Incorrect");
+      return res.status(401).json({ error: "Email or Password is incorrect." });
     }
+
     // Compare the provided password with the hashed password
     const isPasswordCorrect = bcrypt.compare(Password, findEmailUser.Password);
     if (!isPasswordCorrect) {
-      return res.status(400).send("Password is Incorrect");
+      return res.status(401).json({ error: "Email or Password is incorrect." });
     }
+
     // Successful login
     res.json({ message: "SignIn Successful", user: findEmailUser });
   } catch (error) {
-    console.error(error);
-    res.status(500).send("Internal Server Error");
+    console.error("Server error:", error);
+    res.status(500).json({ error: "Internal Server Error" });
   }
 });
-
 // SignUp route
 router.post("/signUp", async (req, res) => {
   const {
@@ -135,8 +141,14 @@ router.post("/signUp", async (req, res) => {
 // get the user details for update when component refresh
 router.post("/getUser", async (req, res) => {
   const { userId } = req.body;
- const user = await User.findById(userId, { notifications: 0,Challenges:0,  Activities: 0});
-  // console.log(userId);
+  const user = await User.findById(userId, {
+    notifications: 0,
+    Challenges: 0,
+    Activities: 0,
+  }).populate({
+    path: "Posts",
+    options: { limit: 5, sort: { Time: -1 } }, // Sort by Time (descending) and limit to 5 posts
+  });
   if (user) {
     // console.log("send");
     res.send(user);

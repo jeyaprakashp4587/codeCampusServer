@@ -51,7 +51,7 @@ const UserSchema = new Schema({
   Courses: [{
     Course_Name: String, Technologies: [
       { TechName: String, Points: { default: 0 ,type: Number} }
-  ] }],
+  ]}],
   Reawards: [],
   Challenges: [
     {

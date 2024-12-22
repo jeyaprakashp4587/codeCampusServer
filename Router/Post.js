@@ -193,6 +193,27 @@ router.get("/getConnectionPosts/:userId", async (req, res) => {
     res.status(500).send("An error occurred while fetching connection posts.");
   }
 });
+// get user posts
+router.post("/getUserPosts", async (req, res) => {
+  const { userId, offset } = req.body; // Offset is the number of posts already fetched
+console.log(userId,offset);
+
+  try {
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).send({ message: "User not found" });
+    }
+    const posts = await User.find({ _id: { $in: user.Posts } }) // Filter posts belonging to the user
+      .sort({ Time: -1 }) // Sort posts by Time in descending order
+      .skip(offset) // Skip already fetched posts
+      .limit(5); // Fetch the next 5 posts
+
+    res.send(posts);
+  } catch (error) {
+    console.error("Error fetching user posts:", error);
+    res.status(500).send({ message: "An error occurred while fetching posts" });
+  }
+});
 // Like post
 router.post("/likePost/:postId", async (req, res) => {
   const { postId } = req.params;
