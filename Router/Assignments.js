@@ -91,5 +91,26 @@ router.post("/saveAssignment/:id", async (req, res) => {
     res.status(500).json({ message: "Server error" });
   }
 });
+// get user assignments
+router.get('/getUserAssignments/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+// console.log(userId);
 
+    // Fetch the user by ID
+    const user = await User.findById(userId).select('Assignments');
+
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    // console.log(user?.Assignments);
+    
+    // Respond with assignments
+    res.status(200).json({Assignments: user.Assignments});
+  } catch (error) {
+    console.error('Error fetching user assignments:', error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+// s
 module.exports = router;
