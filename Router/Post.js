@@ -90,7 +90,7 @@ router.post("/uploadPost", async (req, res) => {
 router.post("/deletePost/:id", async (req, res) => {
   const { postId } = req.body;
   const { id: userId } = req.params;
-  console.log(postId);
+  // console.log(postId);
   try {
     // Validate ObjectIds
     if (
@@ -122,7 +122,7 @@ router.post("/deletePost/:id", async (req, res) => {
         }
       })
     );
-    res.status(200).send(user);
+    res.status(200).json({Posts: user?.Posts});
   } catch (error) {
     console.error(error);
     res.status(500).send("An error occurred while deleting the post.");
