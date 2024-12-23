@@ -660,7 +660,7 @@ router.post('/deleteNote', async (req, res) => {
   }
 });
 
-// get notes data
+// get notes data when  click a particulatr notes
 router.get('/getConnectionNotes/:userId', async (req, res) => {
   const { userId } = req.params;
 
