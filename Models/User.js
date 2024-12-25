@@ -125,12 +125,16 @@ const UserSchema = new Schema({
     NotesSenderId: mongoose.Schema.Types.ObjectId, // Reference to the sender
      createdAt: { type: Date, default: Date.now ,expires: 86400}, 
   }
-],
+  ],
   Notes:
   {
      NotesId: mongoose.Schema.Types.ObjectId,
     NotesText: String,
     createdAt: { type: Date, default: Date.now ,expires: 86400}, 
+  },
+  onlineStatus: {
+    type: Boolean,
+    default: false,
   }
 });
 
