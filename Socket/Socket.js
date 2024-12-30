@@ -32,7 +32,11 @@ const initializeSocket = (server) => {
         console.error("Error updating SocketId:", error.message);
       }
     }
-
+    // check user notifiation
+    socket.on("checkNotification", (data) => {
+      console.log(data);
+      
+    })
     // Listen for notification events
     socket.on("sendNotificationForConnection", async (data) => {
       const { ReceiverId, SenderId, Time } = data;
