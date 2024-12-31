@@ -150,7 +150,6 @@ router.post("/getUser", async (req, res) => {
     options: { limit: 5, sort: { Time: -1 } }, // Sort by Time (descending) and limit to 5 posts
   });
   if (user) {
-    // console.log("send");
     res.send(user);
   }
   // console.log("userId", userId);

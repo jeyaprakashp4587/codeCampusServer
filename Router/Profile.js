@@ -142,5 +142,37 @@ router.post("/saveFcmToken", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
+// set online status
+router.post('/setOnlineStatus/:id', async (req, res) => {
+  const { id } = req.params;
+  const { status } = req.body;
+
+  try {
+    // Validate the input
+    if (typeof status !== 'boolean') {
+      return res.status(400).json({ error: 'Invalid status. It must be a boolean.' });
+    }
+
+    // Update the user's status in the database
+    const user = await User.findByIdAndUpdate(
+      id,
+      { onlineStatus: status },
+      { new: true, lean: true } // Use lean for performance if you don't need methods
+    );
+
+    if (!user) {
+      return res.status(404).json({ error: 'User not found.' });
+    }
+
+    // Respond with the updated user object
+    res.status(200).json({ message: 'Online status updated successfully.', onlineStatus: user.onlineStatus });
+  } catch (error) {
+    console.error('Error updating online status:', error);
+    res.status(500).json({ error: 'Internal Server Error. Please try again later.' });
+  }
+});
+
+module.exports = router;
+
 
 module.exports = router;

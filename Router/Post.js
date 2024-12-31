@@ -90,7 +90,6 @@ router.post("/uploadPost", async (req, res) => {
 router.post("/deletePost/:id", async (req, res) => {
   const { postId } = req.body;
   const { id: userId } = req.params;
-  // console.log(postId);
   try {
     // Validate ObjectIds
     if (
@@ -122,12 +121,21 @@ router.post("/deletePost/:id", async (req, res) => {
         }
       })
     );
-    res.status(200).json({Posts: user?.Posts});
+
+    // Fetch the latest 5 posts of the user
+    const updatedUser = await User.findById(userId)
+      .populate({
+        path: "Posts",
+        options: { limit: 5, sort: { Time: -1 } }, // Sort by Time (descending) and limit to 5 posts
+      });
+
+    res.status(200).json({ Posts: updatedUser?.Posts || [] });
   } catch (error) {
     console.error(error);
     res.status(500).send("An error occurred while deleting the post.");
   }
 });
+
 // Get connection posts
 router.get("/getConnectionPosts/:userId", async (req, res) => {
   const { userId } = req.params;
