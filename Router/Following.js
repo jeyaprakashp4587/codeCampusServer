@@ -106,7 +106,8 @@ router.get("/getNetworks/:id", async (req, res) => {
                 firstName: user.firstName,
                 lastName: user.LastName,
                 profileImg: user.Images.profile,
-                id: user._id
+                id: user._id,
+                onlineStatus: user.onlineStatus 
               });
             }
           } catch (error) {

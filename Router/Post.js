@@ -126,7 +126,7 @@ router.post("/deletePost/:id", async (req, res) => {
     const updatedUser = await User.findById(userId)
       .populate({
         path: "Posts",
-        options: { limit: 5, sort: { Time: -1 } }, // Sort by Time (descending) and limit to 5 posts
+        options: { limit: 5, sort: { Time: -1 } }, 
       });
 
     res.status(200).json({ Posts: updatedUser?.Posts || [] });
