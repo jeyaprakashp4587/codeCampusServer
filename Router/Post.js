@@ -6,7 +6,6 @@ const cron = require("node-cron");
 
 router.post("/uploadPost", async (req, res) => {
   const { userId, Images, postText, postLink, Time } = req.body;
-  console.log(userId, Images, postText, postLink, Time);
 
   try {
     // Validate input fields
@@ -40,76 +39,78 @@ router.post("/uploadPost", async (req, res) => {
 
     // Share the post with user's connections
     user.Connections.map(async (connection) => {
-  // Fetch the connected user's data by their ID
       const connectionUser = await User.findById(connection.ConnectionsdId);
       if (connectionUser) {
-        // Check if the user already has more than or equal to 15 connection posts
         if (connectionUser.ConnectionsPost.length >= 15) {
-          // Remove the oldest postId (first element in the array)
           connectionUser.ConnectionsPost.shift();
         }
-        // Add the new postId to the connection posts
         connectionUser.ConnectionsPost.push({ postId });
-        // Save the updated connection user data
         await connectionUser.save();
       }
     });
 
+    // Schedule post deletion after 25 hours
     cron.schedule('* * * * *', async () => { 
       const now = new Date();
       const postTime = new Date(newPost.CreatedAt);
       const timeDifference = (now - postTime) / (1000 * 60 * 60); 
-      // Check if 25 hours have passed since the post was created
       if (timeDifference >= 25) {
         try {
-          // Remove the post from all connections
           await User.updateMany(
             { "ConnectionsPost.postId": postId },
             { $pull: { ConnectionsPost: { postId: postId } } }
           );
-
-          // Optionally remove the post from the original user's post array
           await User.findByIdAndUpdate(userId, { 
             $pull: { Posts: { _id: postId } }
           });
-
           console.log(`Post ${postId} removed after 25 hours`);
-
         } catch (err) {
           console.error("Error removing post after 25 hours:", err);
         }
       }
     });
-    res.status(200).send({ text: "Post uploaded successfully", postId });
+
+    // Fetch the latest 5 posts of the user
+    const updatedUser = await User.findById(userId).populate({
+      path: "Posts",
+      options: { limit: 5, sort: { Time: -1 } },
+    });
+
+    // Respond with the post ID and the latest posts
+    res.status(200).send({ 
+      text: "Post uploaded successfully", 
+      postId, 
+    Posts: updatedUser?.Posts || [] 
+    });
   } catch (error) {
     console.error("Error uploading post:", error);
     res.status(500).send("An error occurred while uploading the post.");
   }
 });
+
 // Delete post
 router.post("/deletePost/:id", async (req, res) => {
   const { postId } = req.body;
   const { id: userId } = req.params;
   try {
-    // Validate ObjectIds
     if (
       !mongoose.Types.ObjectId.isValid(userId) ||
       !mongoose.Types.ObjectId.isValid(postId)
     ) {
       return res.status(400).send("Invalid userId or postId");
     }
-
-    // Find the user
     const user = await User.findById(userId);
     if (!user) {
       return res.status(404).send("User not found");
     }
-
-    // Remove the post from the user's Posts array
+    const postExists = user.Posts.some(
+      (post) => post._id.toString() === postId
+    );
+    if (!postExists) {
+      return res.status(404).send("Post not found in user data");
+    }
     user.Posts = user.Posts.filter((post) => post._id.toString() !== postId);
     await user.save();
-
-    // Remove the post from each connection's ConnectionsPost array
     await Promise.all(
       user.Connections.map(async (connectionId) => {
         const connection = await User.findById(connectionId.ConnectionsdId);
@@ -121,14 +122,11 @@ router.post("/deletePost/:id", async (req, res) => {
         }
       })
     );
-
-    // Fetch the latest 5 posts of the user
     const updatedUser = await User.findById(userId)
       .populate({
         path: "Posts",
-        options: { limit: 5, sort: { Time: -1 } }, 
+        options: { limit: 5, sort: { Time: -1 } },
       });
-
     res.status(200).json({ Posts: updatedUser?.Posts || [] });
   } catch (error) {
     console.error(error);
