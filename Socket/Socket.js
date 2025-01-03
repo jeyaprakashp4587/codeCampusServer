@@ -148,7 +148,7 @@ const initializeSocket = (server) => {
       }
     });
     // share a post to connection
-   socket.on("SharePostToConnection", async (data) => {
+   socket.on("SharePostToConnection", async (data,callback) => {
   const { receivingUserId, postId } = data;
   const time = moment().format('YYYY-MM-DDTHH:mm:ss');
   try {
@@ -185,9 +185,15 @@ const initializeSocket = (server) => {
         time,
       });
     }
-    console.log("Notification sent to post receiver");
+    // console.log("Notification sent to post receiver");
+     if (callback) {
+      callback({ success: true, });
+    }
     } catch (error) {
-      console.error("Error sharing post or notifying receiver:", error.message);
+    console.error("Error sharing post or notifying receiver:", error.message);
+     if (callback) {
+      callback({ success: false });
+    }
     }
      });
 
