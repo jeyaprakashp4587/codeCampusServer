@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 const User = require("../Models/User");
 const { mongoose } = require("mongoose");
-const cron = require("node-cron");
+
 
 router.post("/uploadPost", async (req, res) => {
   const { userId, Images, postText, postLink, Time } = req.body;
@@ -46,27 +46,6 @@ router.post("/uploadPost", async (req, res) => {
         }
         connectionUser.ConnectionsPost.push({ postId });
         await connectionUser.save();
-      }
-    });
-
-    // Schedule post deletion after 25 hours
-    cron.schedule('* * * * *', async () => { 
-      const now = new Date();
-      const postTime = new Date(newPost.CreatedAt);
-      const timeDifference = (now - postTime) / (1000 * 60 * 60); 
-      if (timeDifference >= 25) {
-        try {
-          await User.updateMany(
-            { "ConnectionsPost.postId": postId },
-            { $pull: { ConnectionsPost: { postId: postId } } }
-          );
-          await User.findByIdAndUpdate(userId, { 
-            $pull: { Posts: { _id: postId } }
-          });
-          console.log(`Post ${postId} removed after 25 hours`);
-        } catch (err) {
-          console.error("Error removing post after 25 hours:", err);
-        }
       }
     });
 

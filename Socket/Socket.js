@@ -1,7 +1,7 @@
 const Socket = require("socket.io");
 const User = require("../Models/User");
 const initializeFirebaseAdmin = require('../firebase/firebaseAdmin');
-
+const moment = require('moment');
 const initializeSocket = (server) => {
   const io = Socket(server, {
     cors: {
@@ -71,7 +71,11 @@ const initializeSocket = (server) => {
                 title: "New Connection!",
                 body: `You are connected with ${Sender.firstName} ${Sender.LastName}`,
                 imageUrl: Sender.Images.profile
-              },
+              },android: {
+          notification: {
+            icon: "https://i.ibb.co/j6qShGt/CC.png", // Android-specific icon
+          },
+        },
               data: {
                 type: "connection",
                 senderId: SenderId,
@@ -107,8 +111,11 @@ const initializeSocket = (server) => {
               title: "New Post!",
               body: `${user.firstName} ${user.LastName} uploaded a new post`,
               
-                icon: "https://i.ibb.co/j6qShGt/CC.png"
-            },
+            },android: {
+          notification: {
+            icon: "https://i.ibb.co/j6qShGt/CC.png", // Android-specific icon
+          },
+        },
             data: {
               type: "post",
               senderId: user._id.toString(),
@@ -140,6 +147,49 @@ const initializeSocket = (server) => {
         console.error("Error notifying connections:", error.message);
       }
     });
+    // share a post to connection
+   socket.on("SharePostToConnection", async (data) => {
+  const { receivingUserId, postId } = data;
+  const time = moment().format('YYYY-MM-DDTHH:mm:ss');
+  try {
+    const user = await User.findById(userId);
+    if (!user) throw new Error("Sharing user not found");
+    const receivingUser = await User.findById(receivingUserId);
+    if (!receivingUser) throw new Error("Receiving user not found");
+    receivingUser.Notifications.push({
+      NotificationType: "post",
+      NotificationText: `${user.firstName} ${user.LastName} sent a post`,
+      NotificationSender: user._id,
+      Time: time,
+      postId,
+    });
+    await receivingUser.save();
+    if (receivingUser.FcmId) {
+      await admin.messaging().send({
+        token: receivingUser.FcmId,
+        notification: {
+          title: "New Shared Post!",
+          body: `${user.firstName} ${user.LastName} sent a post`,
+        },
+        android: {
+          notification: {
+            icon: "https://i.ibb.co/j6qShGt/CC.png", // Android-specific icon
+          },
+        },
+      });
+    }
+    if (receivingUser.SocketId) {
+      io.to(receivingUser.SocketId).emit("Receive-Noti", {
+        text: `${user.firstName} ${user.LastName} sent a post`,
+        postId,
+        time,
+      });
+    }
+    console.log("Notification sent to post receiver");
+    } catch (error) {
+      console.error("Error sharing post or notifying receiver:", error.message);
+    }
+     });
 
     // Send a notification ro post uploader
     socket.on("LikeNotiToUploader", async (data) => {
