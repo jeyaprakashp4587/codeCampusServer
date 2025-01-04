@@ -44,7 +44,7 @@ DB2.on("connected", () => {
 });
 // inti cron jobs
 const {scheduleCronJob} = require('./CronJob/cronJob')
-
+scheduleCronJob();
 // Routers
 app.use("/LogIn", LogIn);
 app.use("/Courses", Course);
