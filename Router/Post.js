@@ -543,7 +543,9 @@ router.post('/uploadNote', async (req, res) => {
 
   // Validate request
   if (!userId || !noteText) {
-    return res.status(400).json({ success: false, message: 'User ID and note text are required' });
+    return res
+      .status(400)
+      .json({ success: false, message: 'User ID and note text are required' });
   }
 
   try {
@@ -553,36 +555,33 @@ router.post('/uploadNote', async (req, res) => {
       return res.status(404).json({ success: false, message: 'User not found' });
     }
 
-    // Generate a new note ID
     const noteId = new mongoose.Types.ObjectId();
 
-    // Update the user's Notes field
-    user.Notes = { NotesText: noteText ,NotesId: noteId};
+    user.Notes = { NotesText: noteText, NotesId: noteId };
 
-    // Add the note ID to the ConnectionsNotes of the user
     user.ConnectionsNotes.push({
       NotesId: noteId,
       NotesSenderId: user._id,
     });
-
-    // Save the user
     await user.save();
 
-    // Update all connections' ConnectionsNotes
-    const connectionIds = user.Connections.map((c) => c.ConnectionsdId); // Array of connection IDs
-    await User.updateMany(
-      { _id: { $in: connectionIds } },
-      {
-        $push: {
-          ConnectionsNotes: {
-            NotesId: noteId,
-            NotesSenderId: user._id,
-          },
-        },
-      }
-    );
+    const connectionIds = user.Connections
+      .map((c) => c.ConnectionsdId)
+      .filter((id) => id.toString() !== user._id.toString());
 
-    // Response
+    if (connectionIds.length > 0) {
+      await User.updateMany(
+        { _id: { $in: connectionIds } },
+        {
+          $push: {
+            ConnectionsNotes: {
+              NotesId: noteId,
+              NotesSenderId: user._id,
+            },
+          },
+        }
+      );
+    }
     res.status(200).json({
       success: true,
       message: 'Note uploaded successfully',
@@ -595,10 +594,11 @@ router.post('/uploadNote', async (req, res) => {
     });
   }
 });
+
 // delete notes
 router.post('/deleteNote', async (req, res) => {
   const { userId, noteId } = req.body;
-  // console.log(noteId);
+  // console.log("noteid",noteId,"user id",userId);
   
   // Validate request
   if (!userId || !noteId) {
