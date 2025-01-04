@@ -69,8 +69,8 @@ router.post("/uploadPost", async (req, res) => {
 
 // Delete post
 router.post("/deletePost/:id", async (req, res) => {
-  const { postId } = req.body;
-  const { id: userId } = req.params;
+  const { postId } = req.body; 
+  const { id: userId } = req.params; 
   try {
     if (
       !mongoose.Types.ObjectId.isValid(userId) ||
@@ -82,9 +82,7 @@ router.post("/deletePost/:id", async (req, res) => {
     if (!user) {
       return res.status(404).send("User not found");
     }
-    const postExists = user.Posts.some(
-      (post) => post._id.toString() === postId
-    );
+    const postExists = user.Posts.some((post) => post._id.toString() === postId);
     if (!postExists) {
       return res.status(404).send("Post not found in user data");
     }
@@ -104,14 +102,18 @@ router.post("/deletePost/:id", async (req, res) => {
     const updatedUser = await User.findById(userId)
       .populate({
         path: "Posts",
-        options: { limit: 5, sort: { Time: -1 } },
-      });
-    res.status(200).json({ Posts: updatedUser?.Posts || [] });
+        options: { limit: 5, sort: { Time: -1 } }, // Sort and limit for pagination
+      })
+      .exec()
+    return res.status(200).json({ Posts: updatedUser?.Posts || [] });
   } catch (error) {
-    console.error(error);
-    res.status(500).send("An error occurred while deleting the post.");
+    console.error("Error in deletePost route:", error);
+    return res
+      .status(500)
+      .send("An internal server error occurred while deleting the post.");
   }
 });
+
 
 // Get connection posts
 router.get("/getConnectionPosts/:userId", async (req, res) => {
@@ -635,6 +637,7 @@ router.post('/deleteNote', async (req, res) => {
     res.status(200).json({
       success: true,
       message: 'Note deleted successfully',
+      Notes: user.Notes
     });
   } catch (error) {
     console.error('Error deleting note:', error);
