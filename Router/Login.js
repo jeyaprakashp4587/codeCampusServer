@@ -3,21 +3,32 @@ const router = express.Router();
 const User = require("../Models/User");
 const nodemailer = require("nodemailer");
 const bcrypt = require('bcrypt');
+const  redisClient  = require('../Server')
+
 
 router.post("/splash", async (req, res) => {
   const { Email } = req.body;
-  // console.log(Email);
-
   if (!Email) {
     return res.status(400).json({ error: "Email is required" });
   }
-  // console.log("Received email:", Email);
+
   try {
-    const user = await User.findOne({ Email: Email }, { Notifications: 0 }).lean();
-    // console.log(user);
-    
+    // first check the user data in redisClient 
+    const redisClient = redisClient.get()
+    const user = await User.findOne({ Email: Email }, { Notifications: 0 ,ConnectionsPost: 0,Assignments:0,ConnectionsNotes:0}).populate({ path: "Posts",
+    options: { limit: 5, sort: { Time: -1 } },}).lean()
+  // find the user and set the data in redisClient and sent the user data to client
     if (user) {
-      return res.status(200).json({user: user}); // Respond with the user
+      // set the user data in redisClient
+      redisClient.set(`user:${user._id}`, JSON.stringify(user), (err) => {
+        if (err) {
+      console.error("Error setting user data in Redis:", err);
+    } else {
+      console.log("User data cached in Redis with key:", `user:${user._id}`);
+    }
+      })
+      return res.status(200).json({user: user}); 
+      // Respond with the user
     } else {
       console.log("User not found");
       return res.status(404).json({ error: "User not found" });
@@ -145,6 +156,7 @@ router.post("/getUser", async (req, res) => {
     notifications: 0,
     Challenges: 0,
     Activities: 0,
+    ConnectionsNotes:0,
   }).populate({
     path: "Posts",
     options: { limit: 5, sort: { Time: -1 } }, // Sort by Time (descending) and limit to 5 posts
