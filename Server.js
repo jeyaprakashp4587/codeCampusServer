@@ -30,20 +30,13 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors({ origin: "*" }));
 // initalize firebase admin
 const admin = initializeFirebaseAdmin();
-// redisClient on
-const redisClient = redisInit.createClient({
-  host: "192.168.43.90", 
-  port: 6379,            
-});
-// Handle Redis errors
-redisClient.on("error", (err) => {
-  console.error("Redis error: ", err);
-});
-// Test Redis connection
-redisClient.connect()
-  .then(() => console.log("Connected to Redis"));
-// export the redisClient redisClient
-module.exports = redisClient;
+// client on
+// const client = redisInit.createClient();
+// client.connect();
+// client.on("connect", () => {
+//   console.log("redis connected");
+// });
+// module.exports = {client};
 // socket
 socket(server);
 // Connect databases
@@ -93,3 +86,4 @@ server.listen(port, () => {
 //      }
 //  }, 300000); // Ping every 60 seconds
 });
+

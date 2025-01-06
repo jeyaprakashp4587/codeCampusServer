@@ -3,32 +3,33 @@ const router = express.Router();
 const User = require("../Models/User");
 const nodemailer = require("nodemailer");
 const bcrypt = require('bcrypt');
-const  redisClient  = require('../Server')
-
-
+const client  = require('../Redis/RedisServer')
 router.post("/splash", async (req, res) => {
   const { Email } = req.body;
   if (!Email) {
     return res.status(400).json({ error: "Email is required" });
   }
-
   try {
-    // first check the user data in redisClient 
-    const redisClient = redisClient.get()
-    const user = await User.findOne({ Email: Email }, { Notifications: 0 ,ConnectionsPost: 0,Assignments:0,ConnectionsNotes:0}).populate({ path: "Posts",
-    options: { limit: 5, sort: { Time: -1 } },}).lean()
-  // find the user and set the data in redisClient and sent the user data to client
-    if (user) {
-      // set the user data in redisClient
-      redisClient.set(`user:${user._id}`, JSON.stringify(user), (err) => {
-        if (err) {
-      console.error("Error setting user data in Redis:", err);
-    } else {
-      console.log("User data cached in Redis with key:", `user:${user._id}`);
+    // Check Redis cache
+    const cachedUser = await client?.get(`user:${Email}`);
+    if (cachedUser) {
+      return res.status(200).json({ user: JSON.parse(cachedUser) });
     }
+    console.log("Cache miss, querying MongoDB");
+    // Query MongoDB if not found in cache
+    const user = await User.findOne(
+      { Email },
+      { Notifications: 0, ConnectionsPost: 0, Assignments: 0, ConnectionsNotes: 0 }
+    )
+      .populate({
+        path: "Posts",
+        options: { limit: 5, sort: { Time: -1 } },
       })
-      return res.status(200).json({user: user}); 
-      // Respond with the user
+      .lean();
+    if (user) {
+      // Cache the user data in Redis
+      await client?.set(`user:${Email}`, JSON.stringify(user));
+      return res.status(200).json({ user });
     } else {
       console.log("User not found");
       return res.status(404).json({ error: "User not found" });
@@ -38,6 +39,7 @@ router.post("/splash", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
+
 // SignIn route
 router.post("/signIn", async (req, res) => {
   const { Email, Password } = req.body;
