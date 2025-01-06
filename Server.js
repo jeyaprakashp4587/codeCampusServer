@@ -20,10 +20,8 @@ const Interview = require("./Router/Interview")
 const Assignments = require("./Router/Assignments");
 const Wallet = require("./Router/Wallet");
 const Jobs = require("./Router/Jobs");
-const axios = require("axios")
-const cron = require('node-cron');
 const initializeFirebaseAdmin = require('./firebase/firebaseAdmin');
-const User = require("./Models/User");
+const redis = require('redis');
 
 const app = express();
 const server = http.createServer(app);
@@ -32,6 +30,8 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors({ origin: "*" }));
 // initalize firebase admin
 const admin = initializeFirebaseAdmin();
+// redis on
+const client = redis.createClient()
 // socket
 socket(server);
 // Connect databases
