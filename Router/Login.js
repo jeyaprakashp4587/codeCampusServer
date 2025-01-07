@@ -3,7 +3,8 @@ const router = express.Router();
 const User = require("../Models/User");
 const nodemailer = require("nodemailer");
 const bcrypt = require('bcrypt');
-const client  = require('../Redis/RedisServer')
+const client = require('../Redis/RedisServer')
+// router splash 
 router.post("/splash", async (req, res) => {
   const { Email } = req.body;
   if (!Email) {
@@ -43,13 +44,11 @@ router.post("/splash", async (req, res) => {
 // SignIn route
 router.post("/signIn", async (req, res) => {
   const { Email, Password } = req.body;
-
   try {
     // Validate input
     if (!Email || !Password) {
       return res.status(400).json({ error: "Email and Password are required." });
     }
-
     // Convert the email to lowercase
     const lowerCaseEmail = Email.toLowerCase().trim();
 
@@ -58,7 +57,6 @@ router.post("/signIn", async (req, res) => {
     if (!findEmailUser) {
       return res.status(401).json({ error: "Email or Password is incorrect." });
     }
-
     // Compare the provided password with the hashed password
     const isPasswordCorrect = bcrypt.compare(Password, findEmailUser.Password);
     if (!isPasswordCorrect) {
@@ -74,6 +72,14 @@ router.post("/signIn", async (req, res) => {
 });
 // SignUp route
 router.post("/signUp", async (req, res) => {
+  // imges for set profile and cover images
+  const coverImages = [
+  "https://i.ibb.co/d0dBtHy/2148430879.jpg", 
+  "https://i.ibb.co/sKGscq7/129728.jpg"
+  ];
+  const boyProileImges = ["https://i.ibb.co/N1q9xbz/boy3.jpg","https://i.ibb.co/N2gGTTk/boy2.jpg","https://i.ibb.co/4RJhQBn/boy1.jpg"];
+  const girlProileImges = ["https://i.ibb.co/T8sbxRd/girl2.jpg", "https://i.ibb.co/8gPTcpK/girl1.jpg", "https://i.ibb.co/s2bB4yj/girl3.jpg"];
+  // req body
   const {
     First_Name,
     Last_Name,
@@ -91,11 +97,12 @@ router.post("/signUp", async (req, res) => {
   // Convert the email to lowercase
   const lowerCaseEmail = Email.toLowerCase().trim();
   const lowerGender = Gender.toLowerCase().trim();
- const hashedPassword = await bcrypt.hash(Password, 10);
+  const hashedPassword = await bcrypt.hash(Password, 10);
+  const coverImg = coverImages[Math.floor(Math.random() * coverImages.length)];
   // Check if the email already exists
   const existMail = await User.findOne({ Email: Email });
   if (existMail) {
-    res.send("Email has Already Been Taken");
+    return res.send("Email has Already Been Taken");
   } else {
     const user = await User({
       firstName: First_Name,
@@ -109,6 +116,10 @@ router.post("/signUp", async (req, res) => {
       State: State,
       District: District,
       Nationality: Nationality,
+      Images: {
+        profile: Gender.toLowerCase() === 'male' ?   boyProileImges[Math.floor(Math.random() * boyProileImges.length)] :  girlProileImges[Math.floor(Math.random() * girlProileImges.length)],
+        coverImg: coverImg ?? null,
+      }
     });
     // Save the user details in signup
     await user.save();

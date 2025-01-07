@@ -76,47 +76,6 @@ router.post("/updateProfileData/:id", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
-
-const coverImages = [
-  "https://i.ibb.co/d0dBtHy/2148430879.jpg", 
-  "https://i.ibb.co/sKGscq7/129728.jpg"
-];
-// set profile and cover image
-router.post("/setProfile/:id", async (req, res) => {
-  const { id } = req.params;
-  try {
-    if (!id) {
-      return res.status(400).json({ error: "Invalid user ID" });
-    }
-    const user = await User.findById(id);
-    if (!user) {
-      return res.status(404).json({ error: "User not found" });
-    }
-    // Ensure Images object exists
-    if (!user.Images) {
-      user.Images = {};
-    }
-    // Set profile image if not set
-    if (!user.Images.profile) {
-      user.Images.profile =
-        user.Gender.toLowerCase() === "male"
-          ? "https://i.ibb.co/hBjSQLy/boy.png"
-          : "https://i.ibb.co/51W8TcQ/woman.png";
-    }
-    // Set cover image if not set
-    if (!user.Images.coverImg) {
-      user.Images.coverImg = coverImages[Math.floor(Math.random() * coverImages.length)];
-    }
-    // Save the user once, after updating images
-    await user.save();
-    return res.status(200).json({ Images: user.Images });
-  } catch (error) {
-    console.error("Error setting default profile image:", error);
-    return res.status(500).json({ error: "Internal server error" });
-  }
-});
-
-
 // Save FCM token
 router.post("/saveFcmToken", async (req, res) => {
   const { userId, FcmToken } = req.body;
