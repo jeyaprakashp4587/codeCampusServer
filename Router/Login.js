@@ -77,8 +77,8 @@ router.post("/signUp", async (req, res) => {
   "https://i.ibb.co/d0dBtHy/2148430879.jpg", 
   "https://i.ibb.co/sKGscq7/129728.jpg"
   ];
-  const boyProileImges = ["https://i.ibb.co/N1q9xbz/boy3.jpg","https://i.ibb.co/N2gGTTk/boy2.jpg","https://i.ibb.co/4RJhQBn/boy1.jpg"];
-  const girlProileImges = ["https://i.ibb.co/T8sbxRd/girl2.jpg", "https://i.ibb.co/8gPTcpK/girl1.jpg", "https://i.ibb.co/s2bB4yj/girl3.jpg"];
+  const boyProfileImages = ["https://i.ibb.co/N1q9xbz/boy3.jpg","https://i.ibb.co/N2gGTTk/boy2.jpg","https://i.ibb.co/4RJhQBn/boy1.jpg"];
+  const girlProfileImages = ["https://i.ibb.co/T8sbxRd/girl2.jpg", "https://i.ibb.co/8gPTcpK/girl1.jpg", "https://i.ibb.co/s2bB4yj/girl3.jpg"];
   // req body
   const {
     First_Name,
@@ -99,6 +99,10 @@ router.post("/signUp", async (req, res) => {
   const lowerGender = Gender.toLowerCase().trim();
   const hashedPassword = await bcrypt.hash(Password, 10);
   const coverImg = coverImages[Math.floor(Math.random() * coverImages.length)];
+    const profileImg =
+      lowerGender === "male"
+        ? boyProfileImages[Math.floor(Math.random() * boyProfileImages.length)]
+        : girlProfileImages[Math.floor(Math.random() * girlProfileImages.length)];
   // Check if the email already exists
   const existMail = await User.findOne({ Email: Email });
   if (existMail) {
@@ -117,7 +121,7 @@ router.post("/signUp", async (req, res) => {
       District: District,
       Nationality: Nationality,
       Images: {
-        profile: Gender.toLowerCase() === 'male' ?   boyProileImges[Math.floor(Math.random() * boyProileImges.length)] :  girlProileImges[Math.floor(Math.random() * girlProileImges.length)],
+        profile: profileImg ?? null,
         coverImg: coverImg ?? null,
       }
     });
