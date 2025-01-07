@@ -21,7 +21,6 @@ const Assignments = require("./Router/Assignments");
 const Wallet = require("./Router/Wallet");
 const Jobs = require("./Router/Jobs");
 const initializeFirebaseAdmin = require('./firebase/firebaseAdmin');
-const redisInit = require('redis');
 
 const app = express();
 const server = http.createServer(app);
@@ -29,15 +28,8 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cors({ origin: "*" }));
 // initalize firebase admin
-const admin = initializeFirebaseAdmin();
-// client on
-// const client = redisInit.createClient();
-// client.connect();
-// client.on("connect", () => {
-//   console.log("redis connected");
-// });
-// module.exports = {client};
-// socket
+initializeFirebaseAdmin();
+// start socket
 socket(server);
 // Connect databases
 DB1.on("connected", () => {
