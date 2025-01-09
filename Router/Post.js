@@ -3,7 +3,6 @@ const router = express.Router();
 const User = require("../Models/User");
 const { mongoose } = require("mongoose");
 
-
 router.post("/uploadPost", async (req, res) => {
   const { userId, Images, postText, postLink, Time } = req.body;
 
@@ -27,7 +26,7 @@ router.post("/uploadPost", async (req, res) => {
       SenderId: user._id,
       Comments: [],
       LikedUsers: [],
-      CreatedAt: new Date() // Timestamp for when the post is created
+      CreatedAt: new Date(), // Timestamp for when the post is created
     };
 
     // Push the new post to the user's Posts array
@@ -56,10 +55,10 @@ router.post("/uploadPost", async (req, res) => {
     });
 
     // Respond with the post ID and the latest posts
-    res.status(200).send({ 
-      text: "Post uploaded successfully", 
-      postId, 
-    Posts: updatedUser?.Posts || [] 
+    res.status(200).send({
+      text: "Post uploaded successfully",
+      postId,
+      Posts: updatedUser?.Posts || [],
     });
   } catch (error) {
     console.error("Error uploading post:", error);
@@ -69,8 +68,8 @@ router.post("/uploadPost", async (req, res) => {
 
 // Delete post
 router.post("/deletePost/:id", async (req, res) => {
-  const { postId } = req.body; 
-  const { id: userId } = req.params; 
+  const { postId } = req.body;
+  const { id: userId } = req.params;
   try {
     if (
       !mongoose.Types.ObjectId.isValid(userId) ||
@@ -82,7 +81,9 @@ router.post("/deletePost/:id", async (req, res) => {
     if (!user) {
       return res.status(404).send("User not found");
     }
-    const postExists = user.Posts.some((post) => post._id.toString() === postId);
+    const postExists = user.Posts.some(
+      (post) => post._id.toString() === postId
+    );
     if (!postExists) {
       return res.status(404).send("Post not found in user data");
     }
@@ -104,7 +105,7 @@ router.post("/deletePost/:id", async (req, res) => {
         path: "Posts",
         options: { limit: 5, sort: { Time: -1 } }, // Sort and limit for pagination
       })
-      .exec()
+      .exec();
     return res.status(200).json({ Posts: updatedUser?.Posts || [] });
   } catch (error) {
     console.error("Error in deletePost route:", error);
@@ -113,7 +114,6 @@ router.post("/deletePost/:id", async (req, res) => {
       .send("An internal server error occurred while deleting the post.");
   }
 });
-
 
 // Get connection posts
 router.get("/getConnectionPosts/:userId", async (req, res) => {
@@ -183,7 +183,7 @@ router.get("/getConnectionPosts/:userId", async (req, res) => {
 // get user posts
 router.post("/getUserPosts", async (req, res) => {
   const { userId, offset } = req.body; // Offset is the number of posts already fetched
-console.log(userId,offset);
+  console.log(userId, offset);
 
   try {
     const user = await User.findById(userId);
@@ -217,7 +217,7 @@ router.post("/likePost/:postId", async (req, res) => {
 
     // Find the user who owns the post
     const postOwner = await User.findOne({ "Posts._id": postId });
-  
+
     if (!postOwner) {
       return res.status(404).json({ message: "Post not found" });
     }
@@ -314,41 +314,40 @@ router.post("/unlikePost/:postId", async (req, res) => {
       .json({ message: "An error occurred while unliking the post." });
   }
 });
-// --------
+// get liked users
 router.get("/getLikedUsers/:postId", async (req, res) => {
   try {
     const { postId } = req.params;
-
+    const { skip = 0, limit = 10 } = req.query; // Defaults to skip 0 and limit 10
     // Find the user who owns the post
     const postOwner = await User.findOne({ "Posts._id": postId });
-
     if (!postOwner) {
       return res.status(404).json({ message: "Post not found" });
     }
-
     // Extract the specific post from the user's Posts array
     const post = postOwner.Posts.id(postId);
-
     if (!post) {
       return res.status(404).json({ message: "Post not found" });
     }
-
-    // Extract the LikedUsers array (which contains user IDs and LikedTime)
-    const likedUserIds = post.LikedUsers.map((user) => user.LikedUser);
+    // Extract the LikedUsers array
     const likedUsersData = post.LikedUsers.map((user) => ({
       LikedUser: user.LikedUser,
       LikedTime: user.LikedTime,
     }));
-
-    // Find the details of the users who liked the post (firstName, lastName, profilePicture)
+    // Paginate the LikedUsers array
+    const paginatedLikedUsersData = likedUsersData.slice(
+      parseInt(skip),
+      parseInt(skip) + parseInt(limit)
+    );
+    const likedUserIds = paginatedLikedUsersData.map((user) => user.LikedUser);
+    // Find the details of the users who liked the post
     const likedUsers = await User.find(
       { _id: { $in: likedUserIds } },
       "firstName LastName Images.profile _id"
     );
-
     // Combine user details with the liked time
     const response = likedUsers.map((user) => {
-      const userLikeData = likedUsersData.find(
+      const userLikeData = paginatedLikedUsersData.find(
         (likeData) => likeData.LikedUser.toString() === user._id.toString()
       );
       return {
@@ -359,14 +358,14 @@ router.get("/getLikedUsers/:postId", async (req, res) => {
         userId: user?._id,
       };
     });
-
-    return res.status(200).json({ likedUsers: response });
+    const hasMore = likedUsersData.length > parseInt(skip) + parseInt(limit);
+    return res.status(200).json({ likedUsers: response, hasMore });
   } catch (err) {
     console.error(err);
     return res.status(500).json({ message: "Server error" });
   }
 });
-// -------- comments
+// ---upload comments
 router.post("/commentPost/:postId", async (req, res) => {
   const { postId } = req.params;
   const { userId, commentText, commentTime } = req.body;
@@ -431,6 +430,8 @@ router.post("/commentPost/:postId", async (req, res) => {
 router.get("/getComments/:postId", async (req, res) => {
   try {
     const { postId } = req.params;
+    const { skip = 0, limit = 10 } = req.query; // Defaults to skip 0 and limit 10
+
     // Find the user who owns the post
     const postOwner = await User.findOne({ "Posts._id": postId });
 
@@ -445,14 +446,21 @@ router.get("/getComments/:postId", async (req, res) => {
       return res.status(404).json({ message: "Post not found" });
     }
 
-    // Fetch the user details for each comment
-    const commentUserIds = post.Comments.map((comment) => comment.commentedBy);
+    // Paginate the comments array
+    const paginatedComments = post.Comments.slice(
+      parseInt(skip),
+      parseInt(skip) + parseInt(limit)
+    );
+
+    const commentUserIds = paginatedComments.map(
+      (comment) => comment.commentedBy
+    );
     const commentedUsers = await User.find(
       { _id: { $in: commentUserIds } },
       "firstName LastName Images.profile _id"
     );
 
-    const commentsWithUserDetails = post.Comments.map((comment) => {
+    const commentsWithUserDetails = paginatedComments.map((comment) => {
       const commentedUser = commentedUsers.find(
         (user) => user._id.toString() === comment.commentedBy.toString()
       );
@@ -467,8 +475,8 @@ router.get("/getComments/:postId", async (req, res) => {
         },
       };
     });
-
-    res.status(200).json({ comments: commentsWithUserDetails });
+    const hasMore = post.Comments.length > parseInt(skip) + parseInt(limit);
+    res.status(200).json({ comments: commentsWithUserDetails, hasMore });
   } catch (error) {
     console.error("Error fetching comments:", error);
     res
@@ -521,7 +529,7 @@ router.get("/getPostDetails/:postId", async (req, res) => {
           "SenderDetails.LastName": 1,
           "SenderDetails.Images.profile": 1,
           "SenderDetails.InstitudeName": 1,
-          "SenderDetails._id":1,
+          "SenderDetails._id": 1,
         },
       },
     ]);
@@ -538,21 +546,23 @@ router.get("/getPostDetails/:postId", async (req, res) => {
   }
 });
 // upload notes
-router.post('/uploadNote', async (req, res) => {
+router.post("/uploadNote", async (req, res) => {
   const { userId, noteText } = req.body;
 
   // Validate request
   if (!userId || !noteText) {
     return res
       .status(400)
-      .json({ success: false, message: 'User ID and note text are required' });
+      .json({ success: false, message: "User ID and note text are required" });
   }
 
   try {
     // Find the user
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found' });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
 
     const noteId = new mongoose.Types.ObjectId();
@@ -565,9 +575,9 @@ router.post('/uploadNote', async (req, res) => {
     });
     await user.save();
 
-    const connectionIds = user.Connections
-      .map((c) => c.ConnectionsdId)
-      .filter((id) => id.toString() !== user._id.toString());
+    const connectionIds = user.Connections.map((c) => c.ConnectionsdId).filter(
+      (id) => id.toString() !== user._id.toString()
+    );
 
     if (connectionIds.length > 0) {
       await User.updateMany(
@@ -584,36 +594,40 @@ router.post('/uploadNote', async (req, res) => {
     }
     res.status(200).json({
       success: true,
-      message: 'Note uploaded successfully',
+      message: "Note uploaded successfully",
     });
   } catch (error) {
-    console.error('Error uploading note:', error);
+    console.error("Error uploading note:", error);
     res.status(500).json({
       success: false,
-      message: 'An error occurred while uploading the note',
+      message: "An error occurred while uploading the note",
     });
   }
 });
 
 // delete notes
-router.post('/deleteNote', async (req, res) => {
+router.post("/deleteNote", async (req, res) => {
   const { userId, noteId } = req.body;
   // console.log("noteid",noteId,"user id",userId);
-  
+
   // Validate request
   if (!userId || !noteId) {
-    return res.status(400).json({ success: false, message: 'User ID and note ID are required' });
+    return res
+      .status(400)
+      .json({ success: false, message: "User ID and note ID are required" });
   }
   try {
     // Find the user
     const user = await User.findById(userId);
     if (!user) {
-      return res.status(404).json({ success: false, message: 'User not found' });
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
     }
     // Remove the note from the user's Notes and ConnectionsNotes
     // Remove from user's Notes
     if (user.Notes && user.Notes.NotesId.toString() === noteId) {
-      user.Notes = {};  // Clear the user's note
+      user.Notes = {}; // Clear the user's note
     }
     // Remove the note from the user's ConnectionsNotes
     user.ConnectionsNotes = user.ConnectionsNotes.filter(
@@ -636,25 +650,27 @@ router.post('/deleteNote', async (req, res) => {
     // Response
     res.status(200).json({
       success: true,
-      message: 'Note deleted successfully',
-      Notes: user.Notes
+      message: "Note deleted successfully",
+      Notes: user.Notes,
     });
   } catch (error) {
-    console.error('Error deleting note:', error);
+    console.error("Error deleting note:", error);
     res.status(500).json({
       success: false,
-      message: 'An error occurred while deleting the note',
+      message: "An error occurred while deleting the note",
     });
   }
 });
 
 // get notes data when  click a particulatr notes
-router.get('/getConnectionNotes/:userId', async (req, res) => {
+router.get("/getConnectionNotes/:userId", async (req, res) => {
   const { userId } = req.params;
 
   // Validate request
   if (!userId) {
-    return res.status(400).json({ success: false, message: 'User ID is required' });
+    return res
+      .status(400)
+      .json({ success: false, message: "User ID is required" });
   }
 
   try {
@@ -662,45 +678,48 @@ router.get('/getConnectionNotes/:userId', async (req, res) => {
     const userNotes = await User.aggregate([
       { $match: { _id: new mongoose.Types.ObjectId(userId) } }, // Use 'new' to instantiate ObjectId
       {
-        $unwind: '$ConnectionsNotes', // Unwind the ConnectionsNotes array to process each entry
+        $unwind: "$ConnectionsNotes", // Unwind the ConnectionsNotes array to process each entry
       },
       {
         $lookup: {
-          from: 'users', // Look up sender details from the same User collection
-          localField: 'ConnectionsNotes.NotesSenderId', // Field to join with the sender's data
-          foreignField: '_id', // Match on the user ID
-          as: 'senderDetails', // Name of the array where sender details will be stored
+          from: "users", // Look up sender details from the same User collection
+          localField: "ConnectionsNotes.NotesSenderId", // Field to join with the sender's data
+          foreignField: "_id", // Match on the user ID
+          as: "senderDetails", // Name of the array where sender details will be stored
         },
       },
       {
         $project: {
           _id: 0, // Exclude the user ID from the result
-          NotesText: '$Notes.NotesText',
-          NotesId: '$ConnectionsNotes.NotesId', 
+          NotesText: "$Notes.NotesText",
+          NotesId: "$ConnectionsNotes.NotesId",
           // Corrected to access NotesText from the Notes object
-          NotesSenderFirstName: { $arrayElemAt: ['$senderDetails.firstName', 0] }, // Get the sender's first name
-          NotesSenderLastName: { $arrayElemAt: ['$senderDetails.LastName', 0] }, // Get the sender's last name
-          NotesSenderProfile: { $arrayElemAt: ['$senderDetails.Images.profile', 0] },
-          NotesSenderId: {$arrayElemAt:['$senderDetails._id',0]}
+          NotesSenderFirstName: {
+            $arrayElemAt: ["$senderDetails.firstName", 0],
+          }, // Get the sender's first name
+          NotesSenderLastName: { $arrayElemAt: ["$senderDetails.LastName", 0] }, // Get the sender's last name
+          NotesSenderProfile: {
+            $arrayElemAt: ["$senderDetails.Images.profile", 0],
+          },
+          NotesSenderId: { $arrayElemAt: ["$senderDetails._id", 0] },
           // Get the sender's profile image
         },
       },
     ]);
     // Response with the aggregated notes data
     // console.log(userNotes);
-    
+
     res.status(200).json({
       success: true,
       notes: userNotes,
     });
   } catch (error) {
-    console.error('Error fetching notes:', error);
+    console.error("Error fetching notes:", error);
     res.status(500).json({
       success: false,
-      message: 'An error occurred while fetching notes',
+      message: "An error occurred while fetching notes",
     });
   }
 });
 
 module.exports = router;
- 

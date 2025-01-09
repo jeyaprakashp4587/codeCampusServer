@@ -92,13 +92,18 @@ router.post("/removeConnection/:id", async (req, res) => {
 // get user networks connecton
 router.get("/getNetworks/:id", async (req, res) => {
   const { id } = req.params;
-  console.log(id);
+  const { skip = 0, limit = 10 } = req.query;
   try {
     const selectedUser = await User.findById(id);
     const users = [];
     if (selectedUser) {
+      const totalConnections = selectedUser.Connections.length;
+      const paginatedConnections = selectedUser.Connections.slice(
+        parseInt(skip),
+        parseInt(skip) + parseInt(limit)
+      );
       await Promise.all(
-        selectedUser.Connections.map(async (connection) => {
+        paginatedConnections.map(async (connection) => {
           try {
             const user = await User.findById(connection.ConnectionsdId);
             if (user) {
@@ -107,7 +112,7 @@ router.get("/getNetworks/:id", async (req, res) => {
                 lastName: user.LastName,
                 profileImg: user.Images.profile,
                 id: user._id,
-                onlineStatus: user.onlineStatus 
+                onlineStatus: user.onlineStatus,
               });
             }
           } catch (error) {
@@ -115,11 +120,17 @@ router.get("/getNetworks/:id", async (req, res) => {
           }
         })
       );
+      const hasMore = parseInt(skip) + parseInt(limit) < totalConnections; // Determine if more connections exist
+      res.status(200).json({ users, hasMore });
+    } else {
+      res.status(404).json({ success: false, message: "User not found", hasMore: false });
     }
-    res.status(200).json({ users: users });
   } catch (error) {
-    console.error('Error fetching user networks:', error);
-    res.status(500).json({ success: false, message: 'Internal server error' });
+    console.error("Error fetching user networks:", error);
+    res.status(500).json({ success: false, message: "Internal server error", hasMore: false });
   }
 });
+
+
+
 module.exports = router;

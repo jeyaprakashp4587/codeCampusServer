@@ -31,6 +31,20 @@ router.post("/addCourse", async (req, res) => {
     return res.status(500).send("Server error: " + error.message);
   }
 });
+// get courses
+router.get("/getCourses/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    const user = await User.findById(id, { Courses: 1, _id: 0 });
+    if (user) {
+      res.status(200).json({ Courses: user.Courses });
+    } else {
+      res.status(404).json({ message: "User not found" });
+    }
+  } catch (error) {
+    res.status(400).json({ error: "An error occurred" });
+  }
+});
 
 // Add Technology to Course
 router.post("/addTech", async (req, res) => {

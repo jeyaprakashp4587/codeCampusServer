@@ -14,6 +14,8 @@ router.post("/splash", async (req, res) => {
     // Check Redis cache
     const cachedUser = await client?.get(`user:${Email}`);
     if (cachedUser) {
+      console.log('ok');
+      
       return res.status(200).json({ user: JSON.parse(cachedUser) });
     }
     console.log("Cache miss, querying MongoDB");
@@ -40,7 +42,6 @@ router.post("/splash", async (req, res) => {
     return res.status(500).json({ error: "Internal server error" });
   }
 });
-
 // SignIn route
 router.post("/signIn", async (req, res) => {
   const { Email, Password } = req.body;
@@ -51,9 +52,11 @@ router.post("/signIn", async (req, res) => {
     }
     // Convert the email to lowercase
     const lowerCaseEmail = Email.toLowerCase().trim();
-
     // Find the user by email
-    const findEmailUser = await User.findOne({ Email: lowerCaseEmail });
+    const findEmailUser = await User.findOne({ Email: lowerCaseEmail },{Notifications:0,Activities:0,ConnectionsPost:0}).populate({
+    path: "Posts",
+    options: { limit: 5, sort: { Time: -1 } }, 
+  });
     if (!findEmailUser) {
       return res.status(401).json({ error: "Email or Password is incorrect." });
     }
@@ -62,8 +65,8 @@ router.post("/signIn", async (req, res) => {
     if (!isPasswordCorrect) {
       return res.status(401).json({ error: "Email or Password is incorrect." });
     }
-
     // Successful login
+    await client?.set(`user:${findEmailUser.Email}`,JSON.stringify(findEmailUser));
     res.json({ message: "SignIn Successful", user: findEmailUser });
   } catch (error) {
     console.error("Server error:", error);
@@ -136,8 +139,8 @@ router.post("/signUp", async (req, res) => {
     },
   });
 
-  // Compose email
- const mailOptions = {
+    // Compose email
+    const mailOptions = {
   from: 'jeyaprakashp431@gmail.com',
   to: lowerCaseEmail,
   subject: 'Welcome to CodeZack!',
@@ -160,10 +163,23 @@ router.post("/signUp", async (req, res) => {
       <p style="margin-top: 20px;">Happy Coding!<br><strong>The CodeZack Team</strong></p>
     </div>
     `,
-   };
+    };
     await transporter.sendMail(mailOptions);
     // 
     res.json({ message:"SignUp Sucessfully",user:user});
+  }
+});
+// sign out
+router.post('/signOut/:id', async (req, res) => { 
+  const { id } = req.params;
+  try {
+    const user = await User.findById(id);
+    await client.del(`user:${user.Email}`);
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    console.log(error);
+    return res.status(500)
+    
   }
 });
 // get the user details for update when component refresh
@@ -171,7 +187,6 @@ router.post("/getUser", async (req, res) => {
   const { userId } = req.body;
   const user = await User.findById(userId, {
     notifications: 0,
-    Challenges: 0,
     Activities: 0,
     ConnectionsNotes:0,
   }).populate({
@@ -183,7 +198,25 @@ router.post("/getUser", async (req, res) => {
   }
   // console.log("userId", userId);
 });
-// send resetPass otp
+// set the updated user 
+router.post('/updateUser/:id', async (req,res) => {
+  const { id } = req.params;
+  const user = await User.findById(id,{Notifications:0,Assignments:0,ConnectionsPost:0}).populate({
+    path: "Posts",
+    options: { limit: 5, sort: { Time: -1 } }
+  });
+  if (!user) {
+    return res.status(400).json({ message: 'user not found' });
+  }
+  try {
+    await client?.set(`user:${user.Email}`, JSON.stringify(user));
+  } catch (error) {
+    console.log(error);
+    return res.send(504).json({messge: error})
+  }
+});
+// password verifications
+// send resetPass otp 
 router.post("/sendResetPassOtp", async (req, res) => {
   const { email, otp } = req.body;
   const transporter = nodemailer.createTransport({

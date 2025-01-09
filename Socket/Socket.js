@@ -16,7 +16,6 @@ const initializeSocket = (server) => {
   // Socket initialization
   io.on("connection", async (socket) => {
     const userId = socket.handshake.query.userId;
-
     // Update the socket ID in the database
     if (userId) {
       try {
@@ -26,7 +25,7 @@ const initializeSocket = (server) => {
           { new: true }
         );
         console.log(
-          `User connected: ${updatedUser.firstName} with socket ID: ${socket.id}`
+          `User connected: ${updatedUser?.firstName} with socket ID: ${socket.id}`
         );
       } catch (error) {
         console.error("Error updating SocketId:", error.message);

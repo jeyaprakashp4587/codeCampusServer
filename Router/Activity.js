@@ -48,13 +48,13 @@ router.post("/setActivity/:id", async (req, res) => {
 // Get all activity dates for a user
 router.get("/getAllActivityDates/:id", async (req, res) => {
   const { id } = req.params;
- console.log(id);
+//  console.log(id);
  
   try {
     const user = await User.findById(id, "Activities.date");
     if (user) {
       const dates = user.Activities.map((activity) => activity.date);
-      console.log(dates);
+      // console.log(dates);
       
       res.send(dates);
     } else {
