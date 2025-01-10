@@ -26,7 +26,9 @@ router.post("/ChangeGpayDetails/:id", async (req, res) => {
   const { GpayAccountName, GpayUpiId } = req.body;
 
   if (!GpayAccountName || !GpayUpiId) {
-    return res.status(400).json({ error: "Both GPay account name and UPI ID are required" });
+    return res
+      .status(400)
+      .json({ error: "Both GPay account name and UPI ID are required" });
   }
 
   const user = await findUserById(id, res);
@@ -60,7 +62,7 @@ router.post("/AddWallet/:id", async (req, res) => {
 
   try {
     await user.save();
-    res.status(200).json(user);
+    res.status(200).json({ Wallet: user.Wallet });
   } catch (error) {
     console.error("Error adding to wallet:", error);
     res.status(500).json({ error: "Error adding to wallet" });
@@ -71,8 +73,17 @@ router.post("/AddWallet/:id", async (req, res) => {
 router.post("/withdrawal", async (req, res) => {
   const { userId, userName, accountName, upiId, amount } = req.body;
 
-  if (!userId || !userName || !accountName || !upiId || !amount || amount <= 0) {
-    return res.status(400).json({ error: "All fields are required with a valid amount" });
+  if (
+    !userId ||
+    !userName ||
+    !accountName ||
+    !upiId ||
+    !amount ||
+    amount <= 0
+  ) {
+    return res
+      .status(400)
+      .json({ error: "All fields are required with a valid amount" });
   }
 
   const user = await findUserById(userId, res);
@@ -148,7 +159,9 @@ router.post("/saveSpendTime", async (req, res) => {
   const { userId, Time } = req.body;
 
   if (!userId || !Time || Time <= 0) {
-    return res.status(400).json({ error: "Valid userId and Time are required" });
+    return res
+      .status(400)
+      .json({ error: "Valid userId and Time are required" });
   }
 
   const user = await findUserById(userId, res);

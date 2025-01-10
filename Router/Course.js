@@ -5,6 +5,7 @@ const User = require("../Models/User");
 // Add Course
 router.post("/addCourse", async (req, res) => {
   const { courseName, userId } = req.body;
+  console.log();
 
   try {
     // Find the user by ID
