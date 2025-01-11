@@ -1,6 +1,8 @@
 const redisInit = require('redis');
 
-const client = redisInit.createClient();
+const client = redisInit.createClient({
+  url: 'redis://<host>:<port>',
+});
 
 client.connect()
   .then(() => {
