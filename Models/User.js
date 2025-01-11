@@ -48,10 +48,19 @@ const UserSchema = new Schema({
     },
   ],
   Connections: [{ ConnectionsdId: String }],
-  Courses: [{
-    Course_Name: String, Technologies: [
-      { TechName: String, Points: { default: 0 ,type: Number} }
-  ]}],
+  Courses: [
+    {
+      Course_Name: String,
+      Technologies: [
+        {
+          TechName: String,
+          Points: { default: 0, type: Number },
+          TechIcon: String,
+          TechWeb: String,
+        },
+      ],
+    },
+  ],
   Reawards: [],
   Challenges: [
     {
@@ -66,7 +75,12 @@ const UserSchema = new Schema({
     },
   ],
   Activities: [{ date: String, activities: [{ activityName: String }] }],
-  ConnectionsPost: [{ postId: String ,createdAt: { type: Date, default: Date.now ,expires: 86400}, }],
+  ConnectionsPost: [
+    {
+      postId: String,
+      createdAt: { type: Date, default: Date.now, expires: 86400 },
+    },
+  ],
   Notifications: [
     {
       NotificationType: String,
@@ -93,49 +107,48 @@ const UserSchema = new Schema({
     },
     GpayAccount: {
       GpayAccountName: String,
-      GpayUpiId: String
+      GpayUpiId: String,
     },
     WithdrawHistory: [
       {
         Time: String,
         WithdrawAmount: Number,
-        status: String
-      }
-    ]
+        status: String,
+      },
+    ],
   },
   InterView: [
     {
       companyName: String,
-      currentWeek:{default:1,type: Number}
-    }
+      currentWeek: { default: 1, type: Number },
+    },
   ],
-  DailyCalimStreak:{default:0,type: Number},	
+  DailyCalimStreak: { default: 0, type: Number },
   TotalStudyTime: { default: 0, type: Number },
-   FcmId: String,
+  FcmId: String,
   // coding war
   War: {
-    warStatus: {type: Boolean},
-    opponent: {profile: String,Name: String},
-    judge: { profile: String, Name: String },    
+    warStatus: { type: Boolean },
+    opponent: { profile: String, Name: String },
+    judge: { profile: String, Name: String },
   },
   // connections notes
- ConnectionsNotes: [
-  {
-    NotesId: mongoose.Schema.Types.ObjectId, // Reference to the note
-    NotesSenderId: mongoose.Schema.Types.ObjectId, // Reference to the sender
-     createdAt: { type: Date, default: Date.now ,expires: 86400}, 
-  }
+  ConnectionsNotes: [
+    {
+      NotesId: mongoose.Schema.Types.ObjectId, // Reference to the note
+      NotesSenderId: mongoose.Schema.Types.ObjectId, // Reference to the sender
+      createdAt: { type: Date, default: Date.now, expires: 86400 },
+    },
   ],
-  Notes:
-  {
-     NotesId: mongoose.Schema.Types.ObjectId,
+  Notes: {
+    NotesId: mongoose.Schema.Types.ObjectId,
     NotesText: String,
-    createdAt: { type: Date, default: Date.now ,expires: 86400}, 
+    createdAt: { type: Date, default: Date.now, expires: 86400 },
   },
   onlineStatus: {
     type: Boolean,
     default: false,
-  }
+  },
 });
 
 module.exports = DB2.model("user", UserSchema);

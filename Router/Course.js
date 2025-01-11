@@ -1,6 +1,22 @@
 const express = require("express");
 const router = express.Router();
 const User = require("../Models/User");
+const { DB1 } = require("../Database/CCDB");
+
+//get all courses from codezack Db
+router.get("/getAllCourses", async (req, res) => {
+  try {
+    const collection = DB1.collection("Courses");
+    const courses = await collection.find().toArray();
+    if (courses.length === 0) {
+      return res.status(404).json({ message: "No courses found" });
+    }
+    return res.status(200).json({ Course: courses[0]?.courses });
+  } catch (error) {
+    console.error("Error retrieving courses:", error);
+    return res.status(500).json({ message: "Internal Server Error" });
+  }
+});
 
 // Add Course
 router.post("/addCourse", async (req, res) => {
@@ -32,7 +48,7 @@ router.post("/addCourse", async (req, res) => {
     return res.status(500).send("Server error: " + error.message);
   }
 });
-// get courses
+// get user courses
 router.get("/getCourses/:id", async (req, res) => {
   const { id } = req.params;
   try {
@@ -49,7 +65,7 @@ router.get("/getCourses/:id", async (req, res) => {
 
 // Add Technology to Course
 router.post("/addTech", async (req, res) => {
-  const { TechName, CourseName, UserId } = req.body;
+  const { TechName, CourseName, TechIcon, TechWeb, UserId } = req.body;
 
   try {
     // Find the user by ID
@@ -75,7 +91,12 @@ router.post("/addTech", async (req, res) => {
     }
 
     // Add the technology and save
-    course.Technologies.push({ TechName, Points: 0 });
+    course.Technologies.push({
+      TechName,
+      Points: 0,
+      TechIcon: TechIcon,
+      TechWeb: TechWeb,
+    });
     await user.save();
 
     return res.status(200).json({ Tech: user.Courses });
