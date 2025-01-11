@@ -64,6 +64,7 @@ app.use("/Jobs",Jobs)
 app.get("/", (req, res) => {
   res.status(200).send("Server is alive!");
 });
+console.log("aws")
 // Port listening
 const port = process.env.PORT || 8080;
 server.listen(port, () => {
