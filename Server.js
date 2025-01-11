@@ -61,7 +61,7 @@ app.use("/Jobs",Jobs)
 // 
 // run cron for delete notes
 // Self-ping endpoint
-app.get("/", (req, res) => {
+app.get("/check", (req, res) => {
   res.status(200).send("Server is alive!");
 });
 console.log("aws")
