@@ -36,7 +36,7 @@ router.post("/splash", async (req, res) => {
       .lean();
     if (user) {
       // Cache the user data in Redis
-      await client?.set(`user:${Email}`, JSON.stringify(user));
+      // await client?.set(`user:${Email}`, JSON.stringify(user));
       return res.status(200).json({ user });
     } else {
       console.log("User not found");
@@ -233,7 +233,7 @@ router.post("/updateUser/:id", async (req, res) => {
     return res.status(400).json({ message: "user not found" });
   }
   try {
-    await client?.set(`user:${user.Email}`, JSON.stringify(user));
+    // await client?.set(`user:${user.Email}`, JSON.stringify(user));
   } catch (error) {
     console.log(error);
     return res.send(504).json({ messge: error });
