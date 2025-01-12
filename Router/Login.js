@@ -3,7 +3,7 @@ const router = express.Router();
 const User = require("../Models/User");
 const nodemailer = require("nodemailer");
 const bcrypt = require("bcrypt");
-const client = require("../Redis/RedisServer");
+// const client = require("../Redis/RedisServer");
 // router splash
 router.post("/splash", async (req, res) => {
   const { Email } = req.body;
