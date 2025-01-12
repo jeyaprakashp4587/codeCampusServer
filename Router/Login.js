@@ -2,9 +2,9 @@ const express = require("express");
 const router = express.Router();
 const User = require("../Models/User");
 const nodemailer = require("nodemailer");
-const bcrypt = require('bcrypt');
-const client = require('../Redis/RedisServer')
-// router splash 
+const bcrypt = require("bcrypt");
+const client = require("../Redis/RedisServer");
+// router splash
 router.post("/splash", async (req, res) => {
   const { Email } = req.body;
   if (!Email) {
@@ -12,17 +12,22 @@ router.post("/splash", async (req, res) => {
   }
   try {
     // Check Redis cache
-    const cachedUser = await client?.get(`user:${Email}`);
-    if (cachedUser) {
-      console.log('ok');
-      
-      return res.status(200).json({ user: JSON.parse(cachedUser) });
-    }
-    console.log("Cache miss, querying MongoDB");
+    // const cachedUser = await client?.get(`user:${Email}`);
+    // if (cachedUser) {
+    //   console.log('ok');
+
+    //   return res.status(200).json({ user: JSON.parse(cachedUser) });
+    // }
+    // console.log("Cache miss, querying MongoDB");
     // Query MongoDB if not found in cache
     const user = await User.findOne(
       { Email },
-      { Notifications: 0, ConnectionsPost: 0, Assignments: 0, ConnectionsNotes: 0 }
+      {
+        Notifications: 0,
+        ConnectionsPost: 0,
+        Assignments: 0,
+        ConnectionsNotes: 0,
+      }
     )
       .populate({
         path: "Posts",
@@ -48,15 +53,20 @@ router.post("/signIn", async (req, res) => {
   try {
     // Validate input
     if (!Email || !Password) {
-      return res.status(400).json({ error: "Email and Password are required." });
+      return res
+        .status(400)
+        .json({ error: "Email and Password are required." });
     }
     // Convert the email to lowercase
     const lowerCaseEmail = Email.toLowerCase().trim();
     // Find the user by email
-    const findEmailUser = await User.findOne({ Email: lowerCaseEmail },{Notifications:0,Activities:0,ConnectionsPost:0}).populate({
-    path: "Posts",
-    options: { limit: 5, sort: { Time: -1 } }, 
-  });
+    const findEmailUser = await User.findOne(
+      { Email: lowerCaseEmail },
+      { Notifications: 0, Activities: 0, ConnectionsPost: 0 }
+    ).populate({
+      path: "Posts",
+      options: { limit: 5, sort: { Time: -1 } },
+    });
     if (!findEmailUser) {
       return res.status(401).json({ error: "Email or Password is incorrect." });
     }
@@ -66,7 +76,10 @@ router.post("/signIn", async (req, res) => {
       return res.status(401).json({ error: "Email or Password is incorrect." });
     }
     // Successful login
-    await client?.set(`user:${findEmailUser.Email}`,JSON.stringify(findEmailUser));
+    // await client?.set(
+    //   `user:${findEmailUser.Email}`,
+    //   JSON.stringify(findEmailUser)
+    // );
     res.json({ message: "SignIn Successful", user: findEmailUser });
   } catch (error) {
     console.error("Server error:", error);
@@ -77,11 +90,19 @@ router.post("/signIn", async (req, res) => {
 router.post("/signUp", async (req, res) => {
   // imges for set profile and cover images
   const coverImages = [
-  "https://i.ibb.co/d0dBtHy/2148430879.jpg", 
-  "https://i.ibb.co/sKGscq7/129728.jpg"
+    "https://i.ibb.co/d0dBtHy/2148430879.jpg",
+    "https://i.ibb.co/sKGscq7/129728.jpg",
   ];
-  const boyProfileImages = ["https://i.ibb.co/N1q9xbz/boy3.jpg","https://i.ibb.co/N2gGTTk/boy2.jpg","https://i.ibb.co/4RJhQBn/boy1.jpg"];
-  const girlProfileImages = ["https://i.ibb.co/T8sbxRd/girl2.jpg", "https://i.ibb.co/8gPTcpK/girl1.jpg", "https://i.ibb.co/s2bB4yj/girl3.jpg"];
+  const boyProfileImages = [
+    "https://i.ibb.co/N1q9xbz/boy3.jpg",
+    "https://i.ibb.co/N2gGTTk/boy2.jpg",
+    "https://i.ibb.co/4RJhQBn/boy1.jpg",
+  ];
+  const girlProfileImages = [
+    "https://i.ibb.co/T8sbxRd/girl2.jpg",
+    "https://i.ibb.co/8gPTcpK/girl1.jpg",
+    "https://i.ibb.co/s2bB4yj/girl3.jpg",
+  ];
   // req body
   const {
     First_Name,
@@ -102,10 +123,10 @@ router.post("/signUp", async (req, res) => {
   const lowerGender = Gender.toLowerCase().trim();
   const hashedPassword = await bcrypt.hash(Password, 10);
   const coverImg = coverImages[Math.floor(Math.random() * coverImages.length)];
-    const profileImg =
-      lowerGender === "male"
-        ? boyProfileImages[Math.floor(Math.random() * boyProfileImages.length)]
-        : girlProfileImages[Math.floor(Math.random() * girlProfileImages.length)];
+  const profileImg =
+    lowerGender === "male"
+      ? boyProfileImages[Math.floor(Math.random() * boyProfileImages.length)]
+      : girlProfileImages[Math.floor(Math.random() * girlProfileImages.length)];
   // Check if the email already exists
   const existMail = await User.findOne({ Email: Email });
   if (existMail) {
@@ -126,25 +147,25 @@ router.post("/signUp", async (req, res) => {
       Images: {
         profile: profileImg ?? null,
         coverImg: coverImg ?? null,
-      }
+      },
     });
     // Save the user details in signup
     await user.save();
     // create node mailer for welcome message
     const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-      user: 'jeyaprakashp431@gmail.com',
-      pass: 'qiri pwwh hcyn nrek', // Use App Password here if using Gmail
-    },
-  });
+      service: "gmail",
+      auth: {
+        user: "jeyaprakashp431@gmail.com",
+        pass: "qiri pwwh hcyn nrek", // Use App Password here if using Gmail
+      },
+    });
 
     // Compose email
     const mailOptions = {
-  from: 'jeyaprakashp431@gmail.com',
-  to: lowerCaseEmail,
-  subject: 'Welcome to CodeZack!',
-  html: `
+      from: "jeyaprakashp431@gmail.com",
+      to: lowerCaseEmail,
+      subject: "Welcome to CodeZack!",
+      html: `
     <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
       <h1 style="color: #4CAF50;">Welcome to CodeZack, ${First_Name}!</h1>
       <p>Thank you for signing up for <strong>CodeZack</strong>, the ultimate learning hub for coding enthusiasts like you.</p>
@@ -165,21 +186,20 @@ router.post("/signUp", async (req, res) => {
     `,
     };
     await transporter.sendMail(mailOptions);
-    // 
-    res.json({ message:"SignUp Sucessfully",user:user});
+    //
+    res.json({ message: "SignUp Sucessfully", user: user });
   }
 });
 // sign out
-router.post('/signOut/:id', async (req, res) => { 
+router.post("/signOut/:id", async (req, res) => {
   const { id } = req.params;
   try {
-    const user = await User.findById(id);
-    await client.del(`user:${user.Email}`);
+    // const user = await User.findById(id);
+    // await client.del(`user:${user.Email}`);
     return res.status(200).json({ success: true });
   } catch (error) {
     console.log(error);
-    return res.status(500)
-    
+    return res.status(500);
   }
 });
 // get the user details for update when component refresh
@@ -188,7 +208,7 @@ router.post("/getUser", async (req, res) => {
   const user = await User.findById(userId, {
     notifications: 0,
     Activities: 0,
-    ConnectionsNotes:0,
+    ConnectionsNotes: 0,
   }).populate({
     path: "Posts",
     options: { limit: 5, sort: { Time: -1 } }, // Sort by Time (descending) and limit to 5 posts
@@ -198,39 +218,43 @@ router.post("/getUser", async (req, res) => {
   }
   // console.log("userId", userId);
 });
-// set the updated user 
-router.post('/updateUser/:id', async (req,res) => {
+// set the updated user
+router.post("/updateUser/:id", async (req, res) => {
   const { id } = req.params;
-  const user = await User.findById(id,{Notifications:0,Assignments:0,ConnectionsPost:0}).populate({
+  const user = await User.findById(id, {
+    Notifications: 0,
+    Assignments: 0,
+    ConnectionsPost: 0,
+  }).populate({
     path: "Posts",
-    options: { limit: 5, sort: { Time: -1 } }
+    options: { limit: 5, sort: { Time: -1 } },
   });
   if (!user) {
-    return res.status(400).json({ message: 'user not found' });
+    return res.status(400).json({ message: "user not found" });
   }
   try {
     await client?.set(`user:${user.Email}`, JSON.stringify(user));
   } catch (error) {
     console.log(error);
-    return res.send(504).json({messge: error})
+    return res.send(504).json({ messge: error });
   }
 });
 // password verifications
-// send resetPass otp 
+// send resetPass otp
 router.post("/sendResetPassOtp", async (req, res) => {
   const { email, otp } = req.body;
   const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    service: "gmail",
     auth: {
-      user: 'jeyaprakashp431@gmail.com',
-      pass: 'qiri pwwh hcyn nrek', // Use App Password here if using Gmail
+      user: "jeyaprakashp431@gmail.com",
+      pass: "qiri pwwh hcyn nrek", // Use App Password here if using Gmail
     },
   });
   // Compose email
   const mailOptions = {
-    from: 'jeyaprakashp431@gmail.com',
+    from: "jeyaprakashp431@gmail.com",
     to: email,
-    subject: 'Password Reset Request',
+    subject: "Password Reset Request",
     html: `
       
   <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ddd; border-radius: 10px;">
@@ -267,28 +291,28 @@ router.post("/sendResetPassOtp", async (req, res) => {
   }
 });
 //reset New password
-router.post('/resetNewPassword', async (req, res) => {
+router.post("/resetNewPassword", async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) {
-    return res.status(400).json({ message: 'Email and password are required.' });
+    return res
+      .status(400)
+      .json({ message: "Email and password are required." });
   }
   try {
     // Find the user by email
-    const user = await User.findOne({ Email: email })
+    const user = await User.findOne({ Email: email });
     // console.log(user);
-    
+
     if (!user) {
       console.log("no user found");
-      return res.status(404).json({ message: 'User not found.' });
-    }
-    else {
+      return res.status(404).json({ message: "User not found." });
+    } else {
       user.Password = password;
       await user.save();
-      return res.status(200).json({ msg: 'ok' });
+      return res.status(200).json({ msg: "ok" });
     }
   } catch (error) {
     console.log(err);
-    
   }
 });
 module.exports = router;
