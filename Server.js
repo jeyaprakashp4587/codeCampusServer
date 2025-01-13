@@ -16,11 +16,11 @@ const Activity = require("./Router/Activity");
 const Notification = require("./Router/Notification");
 const Placement = require("./Router/Placement");
 const socket = require("./Socket/Socket");
-const Interview = require("./Router/Interview")
+const Interview = require("./Router/Interview");
 const Assignments = require("./Router/Assignments");
 const Wallet = require("./Router/Wallet");
 const Jobs = require("./Router/Jobs");
-const initializeFirebaseAdmin = require('./firebase/firebaseAdmin');
+const initializeFirebaseAdmin = require("./firebase/firebaseAdmin");
 
 const app = express();
 const server = http.createServer(app);
@@ -40,8 +40,7 @@ DB2.on("connected", () => {
   console.log("DB2 is connected");
 });
 // inti cron jobs
-const {scheduleCronJob} = require('./CronJob/cronJob')
-scheduleCronJob();
+
 // Routers
 app.use("/LogIn", LogIn);
 app.use("/Courses", Course);
@@ -57,26 +56,25 @@ app.use("/Notifications", Notification);
 app.use("/Assignment", Assignments);
 app.use("/Wallet", Wallet);
 app.use("/InterView", Interview);
-app.use("/Jobs",Jobs)
-// 
+app.use("/Jobs", Jobs);
+//
 // run cron for delete notes
 // Self-ping endpoint
 app.get("/check", (req, res) => {
   res.status(200).send("Server is alive!");
 });
-console.log("aws")
+console.log("aws");
 // Port listening
 const port = process.env.PORT || 8080;
 server.listen(port, () => {
   console.log(`Server is listening on port ${port}`);
   // Self-ping every 60 seconds
-//    setInterval(async () => {
-//      try {
-//        await axios.get(`https://codecampusserver-r6gw.onrender.com/ping`);
-//        console.log("Self-ping successful");
-//     } catch (error) {
-//        console.error("Error in self-ping:", error);
-//      }
-//  }, 300000); // Ping every 60 seconds
+  //    setInterval(async () => {
+  //      try {
+  //        await axios.get(`https://codecampusserver-r6gw.onrender.com/ping`);
+  //        console.log("Self-ping successful");
+  //     } catch (error) {
+  //        console.error("Error in self-ping:", error);
+  //      }
+  //  }, 300000); // Ping every 60 seconds
 });
-
