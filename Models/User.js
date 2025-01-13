@@ -126,25 +126,6 @@ const UserSchema = new Schema({
   DailyCalimStreak: { default: 0, type: Number },
   TotalStudyTime: { default: 0, type: Number },
   FcmId: String,
-  // coding war
-  War: {
-    warStatus: { type: Boolean },
-    opponent: { profile: String, Name: String },
-    judge: { profile: String, Name: String },
-  },
-  // connections notes
-  ConnectionsNotes: [
-    {
-      NotesId: mongoose.Schema.Types.ObjectId, // Reference to the note
-      NotesSenderId: mongoose.Schema.Types.ObjectId, // Reference to the sender
-      createdAt: { type: Date, default: Date.now, expires: 86400 },
-    },
-  ],
-  Notes: {
-    NotesId: mongoose.Schema.Types.ObjectId,
-    NotesText: String,
-    createdAt: { type: Date, default: Date.now, expires: 86400 },
-  },
   onlineStatus: {
     type: Boolean,
     default: false,
